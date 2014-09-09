@@ -1,6 +1,7 @@
 class Player{
-	private:
-	int x,y,z;
+	public:
+	float x,y,z;
+	float lookat_x,lookat_y,lookat_z;
 };
 
 class Level{
@@ -10,7 +11,8 @@ class Level{
 	Model_OBJ *room;
 	Model_OBJ *player;
 	int g_rotation;
-		
+	Player *p;
+
 	public:
 	Level(string &l);	
 	void display();
@@ -27,19 +29,19 @@ Level::Level(string &l)
 	player->Load("../models/Tux.obj");
 	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
+	p = new Player;
+	p->x = 0; p->y = 2; p->z = -2;	
+	p->lookat_x = 0; p->lookat_y = 1; p->lookat_z = 0;
 }
 
 void Level::display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-	gluLookAt( 0,1,4, 0,0,0, 0,1,0);
+	gluLookAt( p->x,p->y,p->z, p->lookat_x,p->lookat_y,p->lookat_z, 0,1,0);
+	room->Draw();
 	glPushMatrix();
-		glRotatef(g_rotation,0,1,0);
-		glRotatef(90,0,1,0);
-		g_rotation++;
-		player->Draw();
-		room->Draw();
+	player->Draw();	
 	glPopMatrix();
 	glutSwapBuffers();	
 	glFlush(); 
@@ -47,7 +49,17 @@ void Level::display()
 
 void Level::keyPress(unsigned char key, int x, int y)
 {
+	cout<<key<<endl;
 	//normal key press events
+	if( key == 'w')
+	{
+		p->x+=0.3;
+	}
+	else if( key == 's')
+	{
+		p->x-=0.3;
+	}
+	glutPostRedisplay();
 }
 
 void Level::specialKeyPress(int key,int x,int y)

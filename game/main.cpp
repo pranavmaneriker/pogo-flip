@@ -3,6 +3,7 @@
 //Custom Libraries
 #include "../libs/obj_loader.cpp"
 #include "../libs/window.h"
+glutWindow win;
 
 //Custom classes
 #include "level.cpp"
@@ -19,7 +20,7 @@ class Game{
 	void initWindow(int * argc, char ** argv);
 	Level *level;
 	string level_name;
-	glutWindow win;
+
 	
 	public:
 	Game();
@@ -59,15 +60,16 @@ void Game::display()
 
 void Game::keyPress(unsigned char key, int x, int y)
 {
+	if(key == KEY_ESCAPE)
+	{
+		exit(0);	//add more graceful exit
+	}
+
 	level->keyPress(key,x,y);
 }
 
 void Game::specialKeyPress(int key, int x, int y)
 {
-	if(key == KEY_ESCAPE)
-	{
-		exit(0);	//add more graceful exit
-	}
 	level->specialKeyPress(key,x,y);
 }
 
