@@ -87,7 +87,7 @@ void Game::initGL()
 	glClearDepth( 1.0f );
 	glEnable( GL_DEPTH_TEST );
 	glDepthFunc( GL_LEQUAL );
-	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+	//glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
 	GLfloat amb_light[] = { 0.1, 0.1, 0.1, 1.0 };
 	GLfloat diffuse[] = { 0.6, 0.6, 0.6, 1 };
@@ -96,6 +96,9 @@ void Game::initGL()
 	glLightfv( GL_LIGHT0, GL_DIFFUSE, diffuse );
 	glLightfv( GL_LIGHT0, GL_SPECULAR, specular );
 	glEnable( GL_LIGHT0 );
+	glEnable( GL_BLEND );
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
 	glEnable( GL_COLOR_MATERIAL );
 	glShadeModel( GL_SMOOTH );
 	glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE );
@@ -134,6 +137,7 @@ void Game::start(int *argc, char ** argv)
 int main(int argc, char **argv)
 {
 	g = new Game;
+	rotx = roty = rotz = 0;
 	g->start(&argc, argv);
 	return 0;
 }

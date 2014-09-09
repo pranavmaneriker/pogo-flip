@@ -1,3 +1,5 @@
+float rotx, roty, rotz;
+
 class Player{
 	public:
 	float x,y,z;
@@ -30,7 +32,7 @@ Level::Level(string &l)
 	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
 	p = new Player;
-	p->x = 0; p->y = 2; p->z = -2;	
+	p->x = 0; p->y = 2; p->z = 0;	
 	p->lookat_x = 0; p->lookat_y = 1; p->lookat_z = 0;
 }
 
@@ -38,7 +40,9 @@ void Level::display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-	gluLookAt( p->x,p->y,p->z, p->lookat_x,p->lookat_y,p->lookat_z, 0,1,0);
+	glRotatef(roty, 0, 1, 0);
+	glRotatef(rotx, 1, 0, 0);
+	gluLookAt( p->x,p->y,p->z - 2, p->lookat_x + p->x,p->lookat_y,p->lookat_z +p->z, 0,1,0);
 	room->Draw();
 	glPushMatrix();
 	player->Draw();	
@@ -53,9 +57,17 @@ void Level::keyPress(unsigned char key, int x, int y)
 	//normal key press events
 	if( key == 'w')
 	{
-		p->x+=0.3;
+		p->z+=0.3;
 	}
 	else if( key == 's')
+	{
+		p->z-=0.3;
+	}
+	else if(key == 'a')
+	{
+		p->x+=0.3;
+	}
+	else if(key == 'd')
 	{
 		p->x-=0.3;
 	}
@@ -64,5 +76,26 @@ void Level::keyPress(unsigned char key, int x, int y)
 
 void Level::specialKeyPress(int key,int x,int y)
 {
+	if ( key == GLUT_KEY_LEFT )
+	{
+		roty += 1.0;
+		if(roty>=360)roty-=360;
+	}
+	if ( key == GLUT_KEY_RIGHT )
+	{
+		roty -= 1.0;
+		if(roty<=0)roty+=360;
+	}
+	if ( key == GLUT_KEY_UP )
+	{
+		rotx += 1.0;
+		if(rotx>=360)rotx-=360;
+	}
+	if ( key == GLUT_KEY_DOWN )
+	{
+		rotx -= 1.0;
+		if(rotx<=0)rotx+=360;
+	}
+	glutPostRedisplay();
 	//Handle arrow, function keys etc
 }
