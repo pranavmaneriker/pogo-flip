@@ -1,0 +1,12 @@
+http://www.opengl.org/sdk/
+Toolkit
+
+http://www.vsg3d.com/open-inventor/oiv-tech-specs
+3D graphics applications SDK
+
+http://nehe.gamedev.net/
+
+Question: Why does setting glOrtho before and after make a difference?
+
+libsoil-dev for image loading
+Flip image about y because nearly all image formats are stored starting at the upper left corner, but OpenGL defines the origin of the image in the lower left corner. Thus flipping it vertically solves this discrepancy.
