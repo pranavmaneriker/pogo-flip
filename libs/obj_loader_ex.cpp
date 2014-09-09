@@ -302,7 +302,7 @@ int main(int argc, char **argv)
 	glutIdleFunc( display );									// register Idle Function
         glutKeyboardFunc( keyboard );								// register Keyboard Handler
 	initialize();
-	obj.Load("../../nehe/monkey.obj");
+	obj.Load("../models/Tux.obj");
 	glutMainLoop();												// run GLUT mainloop
 	return 0;
 }
