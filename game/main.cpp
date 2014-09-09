@@ -10,47 +10,68 @@
 using namespace std;
 
 
+
 class Game{
 	private:
 	int score;
 	int health;
 	void initGL();
-	void initWindow();
-	Level level;
+	void initWindow(int * argc, char ** argv);
+	Level *level;
 	string level_name;
-	glWindow window;
-
+	glutWindow win;
 	
 	public:
 	Game();
-	void start();
+	void start(int *argc, char ** argv);
 	void keyPress(unsigned char key, int x, int y);
 	void specialKeyPress(int key, int x, int y);
+	void display();
+};
 
+Game * g;
+
+void display1()
+{
+	g->display();
+}
+
+void keyPress1(unsigned char key, int x, int y)
+{
+	g->keyPress(key, x, y);
+}
+
+void specialKeyPress1(int key, int x, int y)
+{
+	g->specialKeyPress(key, x, y);
 }
 
 Game::Game()
 {
 	level_name = "Level_1";
-	Level level = new Level(level_name);
+	level = new Level(level_name);
 }
 
-
-Game::keyPress(unsigned char key, int x, int y)
+void Game::display()
 {
-	Level->keyPress(key,x,y);
+	level->display();
 }
 
-Game::specialKeyPress(unsigned char key, int x, int y)
+void Game::keyPress(unsigned char key, int x, int y)
+{
+	level->keyPress(key,x,y);
+}
+
+void Game::specialKeyPress(int key, int x, int y)
 {
 	if(key == KEY_ESCAPE)
 	{
 		exit(0);	//add more graceful exit
 	}
-	Level->specialKeyPress(key,x,y);
+	level->specialKeyPress(key,x,y);
 }
 
-Game::initGL()
+void Game::initGL()
 {
 	glMatrixMode(GL_PROJECTION);
 	glViewport(0, 0, win.width, win.height);
@@ -79,10 +100,11 @@ Game::initGL()
 	glDepthFunc( GL_LEQUAL );
 	glEnable( GL_DEPTH_TEST );
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0); 
+	glEnable(GL_LIGHT0);
+	glFlush(); 
 }
 
-Game::initWindow()
+void Game::initWindow(int *argc, char ** argv)
 {
 	win.width = 640;
 	win.height = 480;
@@ -91,27 +113,24 @@ Game::initWindow()
 	win.z_near = 1.0f;
 	win.z_far = 10.0f;
 	// initialize and run program
-	glutInit(&argc, argv);                                      // GLUT initialization
+	glutInit(argc, argv);                                      // GLUT initialization
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );  // Display Mode
 	glutInitWindowSize(win.width,win.height);					// set window size
 	glutCreateWindow(win.title);								// create Window
-	glutDisplayFunc(level->display);									// register Display Function
-    	glutKeyboardFunc(keyPress);								// register Keyboard Handler
-    	glutSpecialFunc(specialKeyPress);								// register Keyboard Handler
+	glutDisplayFunc(display1);									// register Display Function
+    	glutKeyboardFunc(keyPress1);								// register Keyboard Handler
+    	glutSpecialFunc(specialKeyPress1);								// register Keyboard Handler
 	initGL();
 }
 
-Game::start()
+void Game::start(int *argc, char ** argv)
 {
-	initWindow();
+	initWindow(argc,argv);
 }
 
-
-
-
-int main()
+int main(int argc, char **argv)
 {
-	Game *g = new Game;
-	Game->start();
+	g = new Game;
+	g->start(&argc, argv);
 	return 0;
 }

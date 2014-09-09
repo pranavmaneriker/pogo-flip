@@ -63,7 +63,7 @@ Model_OBJ::Model_OBJ()
 	this->TotalConnectedPoints = 0;
 }
  
- Model_OBJ::calculateNormal( float *coord1, float *coord2, float *coord3,float norm[] )
+ void Model_OBJ::calculateNormal( float *coord1, float *coord2, float *coord3,float norm[] )
 {
    /* calculate Vector1 and Vector2 */
    float va[3], vb[3], vr[3], val;
@@ -87,8 +87,6 @@ Model_OBJ::Model_OBJ()
 	norm[1] = vr[1]/val;
 	norm[2] = vr[2]/val;
  
- 
-	return norm;
 }
  
  

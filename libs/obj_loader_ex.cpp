@@ -300,7 +300,7 @@ int main(int argc, char **argv)
 	glutCreateWindow(win.title);								// create Window
 	glutDisplayFunc(display);									// register Display Function
 	glutIdleFunc( display );									// register Idle Function
-    glutKeyboardFunc( keyboard );								// register Keyboard Handler
+        glutKeyboardFunc( keyboard );								// register Keyboard Handler
 	initialize();
 	obj.Load("../../nehe/monkey.obj");
 	glutMainLoop();												// run GLUT mainloop
