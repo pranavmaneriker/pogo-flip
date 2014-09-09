@@ -121,6 +121,7 @@ void Game::initWindow(int *argc, char ** argv)
     	glutKeyboardFunc(keyPress1);								// register Keyboard Handler
     	glutSpecialFunc(specialKeyPress1);								// register Keyboard Handler
 	initGL();
+	glutMainLoop();
 }
 
 void Game::start(int *argc, char ** argv)
