@@ -1,4 +1,5 @@
 float rotx, roty, rotz;
+#define PI 3.14159265
 
 class Player{
 	public:
@@ -14,40 +15,57 @@ class Level{
 	Model_OBJ *player;
 	int g_rotation;
 	Player *p;
+	bool flipped;
 
 	public:
 	Level(string &l);	
 	void display();
 	void keyPress(unsigned char ch, int x, int y);
 	void specialKeyPress(int key, int x, int y);
+	void flip();
 };
 
 Level::Level(string &l)
 {
+	flipped = false;
 	cur_level = l;
-	cur_level_path = "../rooms/" + l +".obj";
+	cur_level_path = "../rooms/" + l +"_alt.obj";
 	player = new Model_OBJ;
 	room = new Model_OBJ;
 	player->Load("../models/Tux.obj");
 	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
 	p = new Player;
-	p->x = 0; p->y = -1; p->z = -4;	
+	p->x = 0; p->y = -1; p->z = -3;	
 	p->lookat_x = 0; p->lookat_y = 1; p->lookat_z = 0;
+}
+
+void Level::flip()
+{
+	flipped = !flipped;
 }
 
 void Level::display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
+	//gluLookAt( p->x,p->y,p->z - 2, p->lookat_x + p->x,p->lookat_y,p->lookat_z +p->z, 0,1,0);
 	glRotatef(roty, 0, 1, 0);
 	glRotatef(rotx, 1, 0, 0);
 	glTranslatef(p->x,p->y,p->z);
-	//gluLookAt( p->x,p->y,p->z - 2, p->lookat_x + p->x,p->lookat_y,p->lookat_z +p->z, 0,1,0);
-	room->Draw();
-	glPushMatrix();
+	if(flipped)
+	{
+		glPushMatrix();
+		glRotatef(180,1,0,0);
+		room->Draw();
+		glPopMatrix();
+	}
+	else
+	{
+		room->Draw();
+	}
 	player->Draw();	
-	glPopMatrix();
+	glLoadIdentity();
 	glutSwapBuffers();	
 	glFlush(); 
 }
@@ -58,19 +76,23 @@ void Level::keyPress(unsigned char key, int x, int y)
 	//normal key press events
 	if( key == 'w')
 	{
-		p->z+=0.3;
+		p->z -=0.5*cos(roty*PI/180);
+		p->x -=0.5*sin(roty*PI/180);
 	}
 	else if( key == 's')
 	{
-		p->z-=0.3;
+		p->z +=0.5*cos(roty*PI/180);
+		p->x +=0.5*sin(roty*PI/180);
 	}
 	else if(key == 'a')
 	{
-		p->x+=0.3;
 	}
 	else if(key == 'd')
 	{
-		p->x-=0.3;
+	}
+	else if(key == 'm')
+	{
+		flip();
 	}
 	glutPostRedisplay();
 }
