@@ -32,7 +32,7 @@ Level::Level(string &l)
 	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
 	p = new Player;
-	p->x = 0; p->y = 2; p->z = 0;	
+	p->x = 0; p->y = -2; p->z = 0;	
 	p->lookat_x = 0; p->lookat_y = 1; p->lookat_z = 0;
 }
 
@@ -42,7 +42,8 @@ void Level::display()
 	glLoadIdentity();
 	glRotatef(roty, 0, 1, 0);
 	glRotatef(rotx, 1, 0, 0);
-	gluLookAt( p->x,p->y,p->z - 2, p->lookat_x + p->x,p->lookat_y,p->lookat_z +p->z, 0,1,0);
+	glTranslatef(p->x,p->y,p->z);
+	//gluLookAt( p->x,p->y,p->z - 2, p->lookat_x + p->x,p->lookat_y,p->lookat_z +p->z, 0,1,0);
 	room->Draw();
 	glPushMatrix();
 	player->Draw();	

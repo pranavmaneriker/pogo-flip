@@ -115,7 +115,7 @@ void Game::initWindow(int *argc, char ** argv)
 	win.height = 480;
 	win.title = "Pogo flip";
 	win.field_of_view_angle = 45;
-	win.z_near = 1.0f;
+	win.z_near = 0.1f;
 	win.z_far = 10.0f;
 	// initialize and run program
 	glutInit(argc, argv);                                      // GLUT initialization
