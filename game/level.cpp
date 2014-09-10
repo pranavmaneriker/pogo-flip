@@ -32,7 +32,7 @@ Level::Level(string &l)
 	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
 	p = new Player;
-	p->x = 0; p->y = -2; p->z = 0;	
+	p->x = 0; p->y = -1; p->z = -4;	
 	p->lookat_x = 0; p->lookat_y = 1; p->lookat_z = 0;
 }
 
