@@ -52,11 +52,13 @@ void Level::display()
 	glRotatef(roty, 0, 1, 0);
 	glRotatef(rotx, 1, 0, 0);
 	glTranslatef(p->x,p->y,p->z);
+	glColor3f(1,1,1);
 	player->Draw();	
 	if(flipped){
 		glRotatef(180,1,0,0);
 	}
 	//gluLookAt( p->x,p->y,p->z - 2, p->lookat_x + p->x,p->lookat_y,p->lookat_z +p->z, 0,1,0);
+	glColor3f(0,1,0);
 	room->Draw();
 	glRotatef(180,1,0,0);
 	inv->Draw();
