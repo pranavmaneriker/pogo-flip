@@ -106,6 +106,30 @@ void Game::initGL()
 	glEnable( GL_DEPTH_TEST );
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
+
+	//adding extra light
+////////GLfloat light1_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
+////////GLfloat light1_diffuse[] = { 0.6, 0.6, 0.6, 1.0 };
+////////GLfloat light1_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+////////GLfloat light1_position[] = { 2.0, 3.0, 1.0, 1.0 };
+////////GLfloat spot_direction[] = { 1.0, 1.0, 0.0 };
+
+////////glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient);
+////////glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
+////////glLightfv(GL_LIGHT1, GL_SPECULAR, light1_specular);
+////////glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
+////////glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.5);
+////////glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.5);
+////////glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.2);
+
+////////glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 45.0);
+////////glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);
+////////glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.0);
+
+////////glEnable(GL_LIGHT1);
+	
+	//done
+
 	glFlush(); 
 }
 
@@ -125,6 +149,7 @@ void Game::initWindow(int *argc, char ** argv)
 	glutDisplayFunc(display1);									// register Display Function
     	glutKeyboardFunc(keyPress1);								// register Keyboard Handler
     	glutSpecialFunc(specialKeyPress1);								// register Keyboard Handler
+	glutFullScreen();
 	initGL();
 	glutMainLoop();
 }
