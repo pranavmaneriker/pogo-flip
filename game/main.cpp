@@ -149,6 +149,7 @@ void Game::initWindow(int *argc, char ** argv)
 	glutDisplayFunc(display1);									// register Display Function
     	glutKeyboardFunc(keyPress1);								// register Keyboard Handler
     	glutSpecialFunc(specialKeyPress1);								// register Keyboard Handler
+	glutFullScreen();
 	initGL();
 	glutMainLoop();
 }

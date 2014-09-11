@@ -1,3 +1,4 @@
+#include<unistd.h>
 float rotx, roty, rotz;
 
 class Player{
@@ -5,6 +6,8 @@ class Player{
 	float x,y,z;
 	float lookat_x,lookat_y,lookat_z;
 };
+
+float flip_angle;	
 
 class Level{
 	private:
@@ -15,22 +18,17 @@ class Level{
 	Model_OBJ *player;
 	int g_rotation;
 	Player *p;
-	bool flipped;
 
 	public:
-	Level(string &l);	
+	Level(string &l);
 	void display();
 	void keyPress(unsigned char ch, int x, int y);
 	void specialKeyPress(int key, int x, int y);
-	void flip();
 };
-void Level::flip()
-{
-	flipped = !flipped;
-}
 
 Level::Level(string &l)
 {
+	flip_angle = 0;
 	cur_level = l;
 	cur_level_path = "../rooms/" + l +"_alt.obj";
 	inv = new Model_OBJ;
@@ -49,21 +47,35 @@ void Level::display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
+	glTranslatef(p->x,p->y,p->z);
 	glRotatef(roty, 0, 1, 0);
 	glRotatef(rotx, 1, 0, 0);
-	glTranslatef(p->x,p->y,p->z);
-	glColor3f(1,1,1);
+	glColor3f(0,1,1);
 	player->Draw();	
-	if(flipped){
-		glRotatef(180,1,0,0);
-	}
+	
+	glRotatef(flip_angle,1,0,0);
+	
 	//gluLookAt( p->x,p->y,p->z - 2, p->lookat_x + p->x,p->lookat_y,p->lookat_z +p->z, 0,1,0);
 	glColor3f(0,1,0);
 	room->Draw();
-	glRotatef(180,1,0,0);
+	glRotatef(flip_angle,1,0,0);
+	glColor3f(0,0.6,0);
 	inv->Draw();
 	glutSwapBuffers();	
 	glFlush(); 
+}
+
+void rotate(int new_angle)
+{
+	flip_angle+=5;
+	if(flip_angle >=360)flip_angle -=360; //TODO flip angle is float, might be a problem
+	glutPostRedisplay();
+	if(flip_angle == 180 || flip_angle == 0)
+	{}
+	else
+	{
+		glutTimerFunc(50,rotate ,1);
+	}
 }
 
 void Level::keyPress(unsigned char key, int x, int y)
@@ -88,7 +100,11 @@ void Level::keyPress(unsigned char key, int x, int y)
 	}
 	else if(key == 'q')
 	{
-		flip();
+		glutTimerFunc(100, rotate , 1 );
+	}
+	else if(key == KEY_ESCAPE)
+	{
+		exit(0);
 	}
 	glutPostRedisplay();
 }
