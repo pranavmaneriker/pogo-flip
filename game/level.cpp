@@ -34,7 +34,7 @@ Level::Level(string &l)
 	inv = new Model_OBJ;
 	player = new Model_OBJ;
 	room = new Model_OBJ;
-	inv->Load("../rooms/Level_1.obj");
+	inv->Load("../rooms/Level_1_test.obj");
 	player->Load("../models/Tux.obj");
 	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
@@ -50,18 +50,24 @@ void Level::display()
 	glTranslatef(p->x,p->y,p->z);
 	glRotatef(roty, 0, 1, 0);
 	glRotatef(rotx, 1, 0, 0);
-	glColor3f(0,1,1);
+	glColor3f(0,0.5,0.5);
+
+	glPushMatrix();
+	glTranslatef(0,0.02,0);
 	player->Draw();	
-	
+	glPopMatrix();
+
 	glRotatef(flip_angle,1,0,0);
 	
 	//gluLookAt( p->x,p->y,p->z - 2, p->lookat_x + p->x,p->lookat_y,p->lookat_z +p->z, 0,1,0);
 	glColor3f(0,1,0);
 	room->Draw();
-	glRotatef(flip_angle,1,0,0);
-	glColor3f(0,0.6,0);
+	glTranslatef(0, -0.02,0);
+	glRotatef(180,1,0,0);
+	glColor3f(1,1,1);
 	inv->Draw();
 	glutSwapBuffers();	
+	glColor3f(0,0,1);
 	glFlush(); 
 }
 
@@ -113,22 +119,22 @@ void Level::specialKeyPress(int key,int x,int y)
 {
 	if ( key == GLUT_KEY_LEFT )
 	{
-		roty += 1.0;
+		roty += 3.0;
 		if(roty>=360)roty-=360;
 	}
 	if ( key == GLUT_KEY_RIGHT )
 	{
-		roty -= 1.0;
+		roty -= 3.0;
 		if(roty<=0)roty+=360;
 	}
 	if ( key == GLUT_KEY_UP )
 	{
-		rotx += 1.0;
+		rotx += 3.0;
 		if(rotx>=360)rotx-=360;
 	}
 	if ( key == GLUT_KEY_DOWN )
 	{
-		rotx -= 1.0;
+		rotx -= 3.0;
 		if(rotx<=0)rotx+=360;
 	}
 	glutPostRedisplay();
