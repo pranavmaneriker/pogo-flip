@@ -16,14 +16,17 @@ class Level{
 	Model_OBJ *room;
 	Model_OBJ *inv;
 	Model_OBJ *player;
+	Model_OBJ *randomFace;
 	int g_rotation;
 	Player *p;
+	float random_angle;
 
 	public:
 	Level(string &l);
 	void display();
 	void keyPress(unsigned char ch, int x, int y);
 	void specialKeyPress(int key, int x, int y);
+	void rotateFace();
 };
 
 Level::Level(string &l)
@@ -34,17 +37,26 @@ Level::Level(string &l)
 	inv = new Model_OBJ;
 	player = new Model_OBJ;
 	room = new Model_OBJ;
+	randomFace = new Model_OBJ;
 	inv->Load("../rooms/Level_1_test.obj");
 	player->Load("../models/Tux.obj");
+	randomFace->Load("../models/monkey.obj");
 	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
 	p = new Player;
 	p->x = 0; p->y = -1; p->z = -3;	
 	p->lookat_x = 0; p->lookat_y = 1; p->lookat_z = 0;
+	random_angle = 0;
+}
+void Level::rotateFace()
+{
+	random_angle +=3;
+	if(random_angle >=360) random_angle-=360;
 }
 
 void Level::display()
 {
+	glClearColor(0,0,0,0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	glTranslatef(p->x,p->y,p->z);
@@ -62,12 +74,18 @@ void Level::display()
 	//gluLookAt( p->x,p->y,p->z - 2, p->lookat_x + p->x,p->lookat_y,p->lookat_z +p->z, 0,1,0);
 	glColor3f(0,1,0);
 	room->Draw();
+	glPushMatrix();
+		glTranslatef(10,2,1);
+		glRotatef(random_angle, 0,1,0);
+		glScalef(0.5,0.5,0.5);
+		glColor3f(1,0.1,0);
+		randomFace->Draw();
+	glPopMatrix();
 	glTranslatef(0, -0.02,0);
 	glRotatef(180,1,0,0);
 	glColor3f(1,1,1);
 	inv->Draw();
 	glutSwapBuffers();	
-	glColor3f(0,0,1);
 	glFlush(); 
 }
 

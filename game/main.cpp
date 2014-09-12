@@ -28,9 +28,15 @@ class Game{
 	void keyPress(unsigned char key, int x, int y);
 	void specialKeyPress(int key, int x, int y);
 	void display();
+	void rotateFace();
 };
 
 Game * g;
+
+void Game::rotateFace()
+{
+	level->rotateFace();
+}
 
 void display1()
 {
@@ -110,6 +116,12 @@ void Game::initGL()
 	glFlush(); 
 }
 
+void rotate()
+{
+	g->rotateFace();
+	glutPostRedisplay();
+}
+
 void Game::initWindow(int *argc, char ** argv)
 {
 	win.width = 640;
@@ -127,6 +139,7 @@ void Game::initWindow(int *argc, char ** argv)
     	glutKeyboardFunc(keyPress1);								// register Keyboard Handler
     	glutSpecialFunc(specialKeyPress1);								// register Keyboard Handler
 	glutFullScreen();
+	glutIdleFunc(rotate);
 	initGL();
 	glutMainLoop();
 }
