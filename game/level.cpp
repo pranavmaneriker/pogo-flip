@@ -1,4 +1,3 @@
-#include<unistd.h>
 float rotx, roty, rotz;
 
 class Player{
@@ -9,6 +8,46 @@ class Player{
 
 float flip_angle;	
 
+class Model_OBJ{
+	public:
+	Model_OBJ()
+	{
+			
+	}
+	vector<tinyobj::shape_t> shapes;
+	vector<tinyobj::material_t> materials;
+
+	bool Load(const char* filename, const char* basepath = NULL)
+	{
+	  std::cout << "Loading " << filename << std::endl;
+	  string err = tinyobj::LoadObj(shapes, materials, filename, basepath);
+	  if (!err.empty()) {
+	    std::cerr << err << std::endl;
+	    return false;
+	  }
+	  return true;
+	}
+	void Draw()
+	{
+		glEnableClientState(GL_VERTEX_ARRAY);	
+		glEnableClientState(GL_NORMAL_ARRAY);
+	//	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		tinyobj::mesh_t mesh;
+		for(int i=0;i<shapes.size();++i)
+		{
+			mesh = shapes[i].mesh;
+			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
+			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
+			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT,&(mesh.indices[0]));		
+		//
+		}		
+			glDisableClientState(GL_VERTEX_ARRAY);	
+			glDisableClientState(GL_NORMAL_ARRAY);
+		//	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
+};
+
+
 class Level{
 	private:
 	string cur_level_path;
@@ -17,6 +56,7 @@ class Level{
 	Model_OBJ *inv;
 	Model_OBJ *player;
 	Model_OBJ *randomFace;
+	
 	int g_rotation;
 	Player *p;
 	float random_angle;
@@ -28,6 +68,7 @@ class Level{
 	void specialKeyPress(int key, int x, int y);
 	void rotateFace();
 };
+
 
 Level::Level(string &l)
 {

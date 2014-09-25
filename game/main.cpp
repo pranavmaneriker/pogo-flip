@@ -1,15 +1,17 @@
 #include<GL/glut.h>
+#include<bits/stdc++.h>
 
 //Custom Libraries
-#include "../libs/obj_loader.cpp"
+//#include "../libs/obj_loader.cpp"
+#include "../libs/tiny_obj_loader.cc"
 #include "../libs/window.h"
 glutWindow win;
 
-//Custom classes
-#include "level.cpp"
-
 using namespace std;
 
+#define KEY_ESCAPE 27
+//Custom classes
+#include "level.cpp"
 
 
 class Game{
