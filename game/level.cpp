@@ -11,8 +11,7 @@ float flip_angle;
 class Model_OBJ{
 	public:
 	Model_OBJ()
-	{
-			
+	{		
 	}
 	vector<tinyobj::shape_t> shapes;
 	vector<tinyobj::material_t> materials;
@@ -29,20 +28,21 @@ class Model_OBJ{
 	}
 	void Draw()
 	{
+		
 		glEnableClientState(GL_VERTEX_ARRAY);	
-		glEnableClientState(GL_NORMAL_ARRAY);
+		//glEnableClientState(GL_NORMAL_ARRAY);
 	//	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		tinyobj::mesh_t mesh;
 		for(int i=0;i<shapes.size();++i)
 		{
 			mesh = shapes[i].mesh;
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
-			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
-			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT,&(mesh.indices[0]));		
+	//		glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
+			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
 		//
 		}		
 			glDisableClientState(GL_VERTEX_ARRAY);	
-			glDisableClientState(GL_NORMAL_ARRAY);
+	//		glDisableClientState(GL_NORMAL_ARRAY);
 		//	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 };
