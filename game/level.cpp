@@ -33,10 +33,10 @@ class Model_OBJ{
 		glEnableClientState(GL_NORMAL_ARRAY);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		tinyobj::mesh_t mesh;
-
 		for(int i=0;i<shapes.size();++i)
 		{
 			mesh = shapes[i].mesh;
+
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
 			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
@@ -49,38 +49,30 @@ class Model_OBJ{
 
 	void DrawColor()
 	{
-		
 		glEnableClientState(GL_VERTEX_ARRAY);	
 		glEnableClientState(GL_NORMAL_ARRAY);
 		tinyobj::mesh_t mesh;
-		tinyobj::material_t material;
-	//		cout<<"No of materials :"<<materials.size()<<endl;
-	//		for(int i=0;i<shapes.size(); ++i)
-	//		{
-	//			mesh = shapes[i].mesh;
-	//			cout<<"Shape: "<<shapes[i].name<<endl;
-	//			cout<<materials[mesh.material_ids[0]].name<<endl;
-	//		}
-	GLfloat arbit[] = {1,0.0,0.0};
-		int mat_id;
-		for(unsigned int i=0;i<shapes.size();++i)
+		int mat;
+		int oldMat = -1;
+		for(int i=0;i<shapes.size();++i)
 		{
 			mesh = shapes[i].mesh;
-			mat_id = mesh.material_ids[0];
-			//glColorMaterial(GL_FRONT, GL_AMBIENT);
-			glColor3fv(&(arbit[0]));
-			//glMaterialfv(GL_FRONT, GL_AMBIENT, &(materials[mat_id].ambient[0]));
-			//cout<<(materials[mat_id].diffuse[0])<<" "<<(materials[mat_id].diffuse[1])<<" "<<(materials[mat_id].diffuse[2])<<endl;
-			//glMaterialfv(GL_FRONT, GL_DIFFUSE, &(materials[mat_id].diffuse[0]));
-			//glMaterialfv(GL_FRONT, GL_SHININESS, &(materials[mat_id].shininess));
-			//glMaterialfv(GL_FRONT, GL_SPECULAR, &(materials[mat_id].specular[0]));
+			mat = mesh.material_ids[0];
+			if(mat !=oldMat)
+			{
+				oldMat = mat;
+				glMaterialfv(GL_FRONT, GL_AMBIENT, materials[mat].ambient);
+				glMaterialfv(GL_FRONT, GL_DIFFUSE, materials[mat].diffuse);
+				glMaterialfv(GL_FRONT, GL_SPECULAR, materials[mat].specular);
+				glMaterialfv(GL_FRONT, GL_SHININESS, &materials[mat].shininess);
+			}	
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
 			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
-		
+		//
 		}		
-		glDisableClientState(GL_VERTEX_ARRAY);	
-		glDisableClientState(GL_NORMAL_ARRAY);
+			glDisableClientState(GL_VERTEX_ARRAY);	
+			glDisableClientState(GL_NORMAL_ARRAY);
 	}
 };
 
@@ -156,8 +148,8 @@ void Level::display()
 		glTranslatef(10,2,1);
 		glRotatef(random_angle, 0,1,0);
 		glScalef(0.5,0.5,0.5);
-		//glColor3f(1,0.1,0);
-	//	randomFace->Draw();
+		glColor3f(1,0.1,0);
+		randomFace->Draw();
 	glPopMatrix();
 	glTranslatef(0, -0.02,0);
 	glRotatef(180,1,0,0);
