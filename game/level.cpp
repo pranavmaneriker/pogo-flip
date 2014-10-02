@@ -30,20 +30,57 @@ class Model_OBJ{
 	{
 		
 		glEnableClientState(GL_VERTEX_ARRAY);	
-		//glEnableClientState(GL_NORMAL_ARRAY);
-	//	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		tinyobj::mesh_t mesh;
+
 		for(int i=0;i<shapes.size();++i)
 		{
 			mesh = shapes[i].mesh;
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
-	//		glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
+			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
 		//
 		}		
 			glDisableClientState(GL_VERTEX_ARRAY);	
-	//		glDisableClientState(GL_NORMAL_ARRAY);
-		//	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableClientState(GL_NORMAL_ARRAY);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
+
+	void DrawColor()
+	{
+		
+		glEnableClientState(GL_VERTEX_ARRAY);	
+		glEnableClientState(GL_NORMAL_ARRAY);
+		tinyobj::mesh_t mesh;
+		tinyobj::material_t material;
+	//		cout<<"No of materials :"<<materials.size()<<endl;
+	//		for(int i=0;i<shapes.size(); ++i)
+	//		{
+	//			mesh = shapes[i].mesh;
+	//			cout<<"Shape: "<<shapes[i].name<<endl;
+	//			cout<<materials[mesh.material_ids[0]].name<<endl;
+	//		}
+	GLfloat arbit[] = {1,0.0,0.0};
+		int mat_id;
+		for(unsigned int i=0;i<shapes.size();++i)
+		{
+			mesh = shapes[i].mesh;
+			mat_id = mesh.material_ids[0];
+			//glColorMaterial(GL_FRONT, GL_AMBIENT);
+			glColor3fv(&(arbit[0]));
+			//glMaterialfv(GL_FRONT, GL_AMBIENT, &(materials[mat_id].ambient[0]));
+			//cout<<(materials[mat_id].diffuse[0])<<" "<<(materials[mat_id].diffuse[1])<<" "<<(materials[mat_id].diffuse[2])<<endl;
+			//glMaterialfv(GL_FRONT, GL_DIFFUSE, &(materials[mat_id].diffuse[0]));
+			//glMaterialfv(GL_FRONT, GL_SHININESS, &(materials[mat_id].shininess));
+			//glMaterialfv(GL_FRONT, GL_SPECULAR, &(materials[mat_id].specular[0]));
+			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
+			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
+			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
+		
+		}		
+		glDisableClientState(GL_VERTEX_ARRAY);	
+		glDisableClientState(GL_NORMAL_ARRAY);
 	}
 };
 
@@ -80,7 +117,7 @@ Level::Level(string &l)
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
 	inv->Load("../rooms/Level_1_test.obj");
-	player->Load("../models/Tux.obj");
+	player->Load("../models/Tux.obj", "../models/");
 	randomFace->Load("../models/monkey.obj");
 	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
@@ -103,29 +140,29 @@ void Level::display()
 	glTranslatef(p->x,p->y,p->z);
 	glRotatef(roty, 0, 1, 0);
 	glRotatef(rotx, 1, 0, 0);
-	glColor3f(0,0.5,0.5);
+	//glColor3f(0,0.5,0.5);
 
 	glPushMatrix();
 	glTranslatef(0,0.02,0);
-	player->Draw();	
+	player->DrawColor();	
 	glPopMatrix();
 
 	glRotatef(flip_angle,1,0,0);
 	
 	//gluLookAt( p->x,p->y,p->z - 2, p->lookat_x + p->x,p->lookat_y,p->lookat_z +p->z, 0,1,0);
-	glColor3f(0,1,0);
-	room->Draw();
+	//glColor3f(0,1,0);
+	//room->Draw();
 	glPushMatrix();
 		glTranslatef(10,2,1);
 		glRotatef(random_angle, 0,1,0);
 		glScalef(0.5,0.5,0.5);
-		glColor3f(1,0.1,0);
-		randomFace->Draw();
+		//glColor3f(1,0.1,0);
+	//	randomFace->Draw();
 	glPopMatrix();
 	glTranslatef(0, -0.02,0);
 	glRotatef(180,1,0,0);
-	glColor3f(1,1,1);
-	inv->Draw();
+	//glColor3f(1,1,1);
+	//inv->Draw();
 	glutSwapBuffers();	
 	glFlush(); 
 }
@@ -145,7 +182,6 @@ void rotate(int new_angle)
 
 void Level::keyPress(unsigned char key, int x, int y)
 {
-	cout<<key<<endl;
 	//normal key press events
 	if( key == 'w')
 	{

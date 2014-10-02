@@ -97,24 +97,27 @@ void Game::initGL()
 	glDepthFunc( GL_LEQUAL );
 	//glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
-	GLfloat amb_light[] = { 0.1, 0.1, 0.1, 1.0 };
-	GLfloat diffuse[] = { 0.6, 0.6, 0.6, 1 };
-	GLfloat specular[] = { 0.7, 0.7, 0.7, 1 };
+	GLfloat amb_light[] = { 0.0, 0.1, 0.1, 1.0 };
+	GLfloat diffuse[] = { 1, 1, 1, 1 };
+	GLfloat specular[] = { 1, 1, 1, 1 };
 	glLightModelfv( GL_LIGHT_MODEL_AMBIENT, amb_light );
 	glLightfv( GL_LIGHT0, GL_DIFFUSE, diffuse );
 	glLightfv( GL_LIGHT0, GL_SPECULAR, specular );
 	glEnable( GL_LIGHT0 );
 	glEnable( GL_BLEND );
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
-	glEnable( GL_COLOR_MATERIAL );
-	glShadeModel( GL_SMOOTH );
-	glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE );
-	glDepthFunc( GL_LEQUAL );
-	glEnable( GL_DEPTH_TEST );
+////////glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+////////glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+        glEnable( GL_COLOR_MATERIAL );
+        glShadeModel( GL_SMOOTH );
+        glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE );
+////////glDepthFunc( GL_LEQUAL );
+        glEnable( GL_DEPTH_TEST );
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-
+	
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT, GL_DIFFUSE);	
+	glColorMaterial(GL_FRONT, GL_SPECULAR);
 	glFlush(); 
 }
 
