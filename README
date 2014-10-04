@@ -10,4 +10,15 @@ libassimp-dev
 May be using tinyobjloader from https://github.com/syoyo/tinyobjloader
 
 compilation:
-g++ game/main.cpp -o game -lGLU -lGLUT -lGL -lSOIL
+
+g++ game/main.cpp -o game -lGLU -lglut -lGL -lSOIL
+
+Obj file exporting from blender:
+Include
+Normals
+uvs
+Materials
+Triangulate edges
+Objects as obj Groups
+Material groups
+

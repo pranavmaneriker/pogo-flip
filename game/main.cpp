@@ -83,39 +83,24 @@ void Game::specialKeyPress(int key, int x, int y)
 
 void Game::initGL()
 {
-	glMatrixMode(GL_PROJECTION);
-	glViewport(0, 0, win.width, win.height);
-	GLfloat aspect = (GLfloat) win.width / win.height;
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(win.field_of_view_angle, aspect, win.z_near, win.z_far);
-	glMatrixMode(GL_MODELVIEW);
-	glShadeModel( GL_SMOOTH );
-	glClearColor( 0.0f, 0.1f, 0.0f, 0.5f );
-	glClearDepth( 1.0f );
-	glEnable( GL_DEPTH_TEST );
-	glDepthFunc( GL_LEQUAL );
-	//glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
-
-	GLfloat amb_light[] = { 0.1, 0.1, 0.1, 1.0 };
-	GLfloat diffuse[] = { 0.6, 0.6, 0.6, 1 };
-	GLfloat specular[] = { 0.7, 0.7, 0.7, 1 };
-	glLightModelfv( GL_LIGHT_MODEL_AMBIENT, amb_light );
-	glLightfv( GL_LIGHT0, GL_DIFFUSE, diffuse );
-	glLightfv( GL_LIGHT0, GL_SPECULAR, specular );
-	glEnable( GL_LIGHT0 );
-	glEnable( GL_BLEND );
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glHint (GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
-	glEnable( GL_COLOR_MATERIAL );
-	glShadeModel( GL_SMOOTH );
-	glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE );
-	glDepthFunc( GL_LEQUAL );
-	glEnable( GL_DEPTH_TEST );
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-
-	glFlush(); 
+	glClearColor(0.5,0.5,0.5,1.0);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(45,640.0/480.0,1.0,500.0);
+        glMatrixMode(GL_MODELVIEW);
+	glEnable(GL_TEXTURE_2D);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        float col[]={1.0,1.0,1.0,1.0};
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, col);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, col);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, col);
+	//draw
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity();
+        float pos[]={-1.0,1.0,-2.0,1.0};
+        glLightfv(GL_LIGHT0,GL_POSITION,pos);
 }
 
 void rotate()
