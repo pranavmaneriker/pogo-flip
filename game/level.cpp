@@ -23,6 +23,15 @@ float flip_angle;
 
 #include<SOIL/SOIL.h>
 
+void saveScreenShot()
+{
+int	save_result = SOIL_save_screenshot
+	(
+		"awesomenessity.bmp",
+		SOIL_SAVE_TYPE_BMP,
+		0, 0, 1024, 768
+	);
+}
 
 class Model_OBJ{
 	public:
@@ -45,6 +54,12 @@ class Model_OBJ{
 	    return false;
 	  }
 
+	
+	  return true;
+	}
+	
+	bool LoadTexture(const char * basepath)	//assume one material per object
+	{	
 	  tinyobj::material_t temp;
 
           string texpath;
@@ -54,25 +69,23 @@ class Model_OBJ{
         	  {
         		 temp = materials[shapes[i].mesh.material_ids[0]];
         		 cout<<"Loading for: "<<shapes[i].name<<endl;
-        		 texpath = basepath+temp.diffuse_texname;
+        		 texpath = temp.diffuse_texname;
         		 cout<<"Path: "<<texpath<<endl;
-        	         if(!LoadTexture(&(texpath[0]) , temp.name))
-        	         {
-        	        	 cout<<"Could not load "<<temp.name<<" texture :"<<temp.diffuse_texname<<endl;
-        	         }
+     	         if(!loadtimg(&(texpath[0]) , temp.name))
+     	         {
+     	        	 cout<<"Could not load "<<temp.name<<" texture :"<<temp.diffuse_texname<<endl;
+     	         }
         	  }
           }
-	
-	  return true;
 	}
 	
-	bool LoadTexture(const char * texname, string& matname)	//assume one material per object
-	{	
+	bool loadtimg(const char * texname, string& matname)
+	{
 		cout<<"Trying to load: "<<texname<<endl;
         	GLuint tex_2d_diffuse_temp = SOIL_load_OGL_texture
         	(
-			"test.bmp",
-        		//texname ,
+			"test.jpg",
+        	//	texname ,
         		SOIL_LOAD_AUTO,
         		SOIL_CREATE_NEW_ID,
         		SOIL_FLAG_INVERT_Y
@@ -208,10 +221,17 @@ Level::Level(string &l)
 	player = new Model_OBJ;
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
+
+	
+
+
 //	inv->Load("../rooms/Level_1_test.obj");
-	inv->Load("../models/minimal/capsule.obj", "../models/minimal/");
+	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
+
+	
+
 	player->Load("../models/Tux.obj", "../models/");
-	//randomFace->Load("../models/monkey.obj");
+	randomFace->Load("../models/monkey.obj");
 	//room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
 	p = new Player;
@@ -278,7 +298,7 @@ void Level::display()
 	glTranslatef(0, -0.02,0);
 	//glRotatef(180,1,0,0);
 	//glColor3f(1,1,1);
-	inv->DrawColor();
+	//inv->DrawColor();
 	glutSwapBuffers();	
 	glFlush(); 
 	//cout<<rotx<<" "<<roty<<" "<<rotz<<" "<<p->x<<" "<<p->y<<" "<<p->z<<endl; 
@@ -339,6 +359,10 @@ void Level::keyPress(unsigned char key, int x, int y)
 	else if(key == KEY_ESCAPE)
 	{
 		exit(0);
+	}
+	else if(key == 'z') //screenshot temp
+	{
+		saveScreenShot();
 	}
 	for(int i=0; i<targets.size(); i++)
 	{

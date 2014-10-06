@@ -1,6 +1,7 @@
 #include<GL/glut.h>
 #include<GL/freeglut.h>
 #include<bits/stdc++.h>
+#include<stdlib.h>
 
 //Custom Libraries
 //#include "../libs/obj_loader.cpp"
@@ -120,7 +121,7 @@ void Game::initWindow(int *argc, char ** argv)
 	win.z_far = 40.0f;
 	// initialize and run program
 	glutInit(argc, argv);                                      // GLUT initialization
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );  // Display Mode
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH | GLUT_ALPHA);  // Display Mode
 	glutInitWindowSize(win.width,win.height);					// set window size
 	glutCreateWindow(win.title);								// create Window
 	glutDisplayFunc(display1);									// register Display Function
