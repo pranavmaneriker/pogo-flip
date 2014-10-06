@@ -1,4 +1,5 @@
 #include<GL/glut.h>
+#include<GL/freeglut.h>
 #include<bits/stdc++.h>
 
 //Custom Libraries
