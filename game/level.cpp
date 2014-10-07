@@ -46,7 +46,7 @@ class Model_OBJ{
 	vector<tinyobj::shape_t> shapes;
 	vector<tinyobj::material_t> materials;
 
-	bool Load(const char* filename, const char* basepath = NULL)
+	bool Load(const char* filename, const char* basepath = NULL, bool tex = false)
 	{
 	  std::cout << "Loading " << filename << std::endl;
 	  string err = tinyobj::LoadObj(shapes, materials, filename, basepath);
@@ -55,7 +55,9 @@ class Model_OBJ{
 	    return false;
 	  }
 	  return true;
+
 	}
+
 	void Draw()
 	{
 		
@@ -162,7 +164,8 @@ Level::Level(string &l)
 	player = new Model_OBJ;
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
-	inv->Load("../rooms/Level_1_test.obj");
+	//inv->Load("../rooms/Level_1_test.obj");
+	inv->Load("../rooms/SnowTerrain/SnowTerrain.obj","../rooms/SnowTerrain/");
 	player->Load("../models/Tux.obj", "../models/");
 	randomFace->Load("../models/monkey.obj");
 	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
@@ -282,7 +285,6 @@ void Level::display()
 		glTranslatef(0, -0.02,0);
 		glRotatef(180,1,0,0);
 
-
 		inv->Draw();
 	
 	
@@ -362,6 +364,7 @@ void Level::display()
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
+	inv->DrawTexture();
 	glutSwapBuffers();	
 	glFlush(); 
 	//cout<<rotx<<" "<<roty<<" "<<rotz<<" "<<p->x<<" "<<p->y<<" "<<p->z<<endl; 
@@ -413,6 +416,10 @@ void Level::keyPress(unsigned char key, int x, int y)
 	if(key == 'y')
 	{
 		has_started = true;
+	}
+	else if(key =='r')
+	{
+		takeScreenShot();
 	}
 ////////else if(key == 'i')
 ////////{

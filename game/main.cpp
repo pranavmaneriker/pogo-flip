@@ -11,6 +11,9 @@
 //#include "../libs/obj_loader.cpp"
 #include "../libs/tiny_obj_loader.cc"
 #include "../libs/window.h"
+//#include<IL/il.h>
+//#include<IL/ilu.h>
+//TODO remove SOIL
 #include<SOIL/SOIL.h>
 
 glutWindow win;
