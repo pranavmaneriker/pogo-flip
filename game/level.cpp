@@ -1,6 +1,6 @@
 #define PI 3.14159265359
 float rotx,roty,rotz;
-int co = 3;
+int co = 0;
 class Player{
 	public:
 	float angle,ratio;
@@ -142,6 +142,7 @@ class Level{
 	float random_angle;
 
 	public:
+	bool has_started;
 	vector<Target> targets;
 	Level(string &l);
 	void display();
@@ -153,6 +154,7 @@ class Level{
 
 Level::Level(string &l)
 {
+	has_started = false;
 	flip_angle = 0;
 	cur_level = l;
 	cur_level_path = "../rooms/" + l +"_alt.obj";
@@ -173,8 +175,8 @@ Level::Level(string &l)
 	p->lx = 1; p->ly = 0; p->lz = 0;
 	random_angle = 0;
 	targets.push_back(Target(5, 0.2 , 2, 20));
-	targets.push_back(Target(5, 0.2 , 3, 20));
-	targets.push_back(Target(5, 0.2 , 1, 20));
+	targets.push_back(Target(7, 0.2 , -4, 30));
+	targets.push_back(Target(-2, 0.2 , 3, 50));
 	
 }
 void Level::rotateFace()
@@ -185,107 +187,181 @@ void Level::rotateFace()
 
 void Level::display()
 {
-	glClearColor(0.7215,0.8627,0.9490,1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
-	glLoadIdentity();
-	gluLookAt(p->x, p->y, p->z, p->x + p->lx,p->y + p->ly,p->z + p->lz, 0.0f, 1.0f, 0.0f);
-
-	glPushMatrix();
-		glTranslatef(p->x,p->y+-1,p->z);
-		glTranslatef(p->lx,p->ly,p->lz);
-		glRotatef(-(p->angle*180/3.14),0,1,0);
-		glTranslatef(0,0,-1);
-		glRotatef(180,0,1,0);	
-		player->DrawColor();
-	glPopMatrix();
-//	glRotatef(roty, 0, 1, 0);
-//	glRotatef(rotx, 1, 0, 0);
-
-
-//	glPushMatrix();
-//		glTranslatef(0,0.02,0);
-//		player->DrawColor();	
-//	glPopMatrix();
-	glRotatef(flip_angle,1,0,0);
-	
-	room->DrawColor();
-//	glPushMatrix();
-//		glRotatef(-roty+180, 0, 1, 0);
-//		glRotatef(-rotx, 1, 0, 0);
-//		glTranslatef(p->curx,p->cury,p->curz);
-//		player->DrawColor();
-//	glPopMatrix();
-	glPushMatrix();
-//		glTranslatef(10,2,1);
-//		glRotatef(random_angle, 0,1,0);
-//		glScalef(0.5,0.5,0.5);
-//		randomFace->Draw();
-	glPopMatrix();
-	for(int i = 0; i < targets.size() ; i++)
+	if(!has_started)
 	{
-		if(targets[i].reached==false)
-		{
-			glPushMatrix();
-				glTranslatef(targets[i].x,targets[i].y,targets[i].z);
-				glRotatef(random_angle, 0,1,0);
-				glScalef(0.25,0.25,0.25);
-				randomFace->Draw();
-			glPopMatrix();
-		}
+		glClearColor(0.7215,0.8627,0.9490,1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glLoadIdentity();
+		glTranslatef(0, -1, -3);
+		glRotatef(random_angle, 0, 1, 0);
+		player->DrawColor();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glOrtho(0.0, win.width, win.height, 0.0, -1.0, 10.0);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_LIGHT0);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		const char* x = "                Pogo Flip\n_______________________";
+		unsigned char* y;
+		y = (unsigned char*) x;
+		glColor3f(0,0,0);
+		glRasterPos2i(win.width/2 - 150, win.height/4);
+		glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, y);
+		x = "Press 'y' to start the game.";
+		y = (unsigned char*) x;
+		glColor3f(0,0,0);
+		glRasterPos2i(win.width/2 - 75, win.height/4 +75);
+		glutBitmapString(GLUT_BITMAP_HELVETICA_12, y);
+		
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
 	}
-	glTranslatef(0, -0.02,0);
-	glRotatef(180,1,0,0);
+	else
+	{
+		glClearColor(0.7215,0.8627,0.9490,1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glLoadIdentity();
+		gluLookAt(p->x, p->y, p->z, p->x + p->lx,p->y + p->ly,p->z + p->lz, 0.0f, 1.0f, 0.0f);
+
+		glPushMatrix();
+			glTranslatef(p->x,p->y+-1,p->z);
+			glTranslatef(p->lx,p->ly,p->lz);
+			glRotatef(-(p->angle*180/3.14),0,1,0);
+			glTranslatef(0,0,-1);
+			glRotatef(180,0,1,0);
+			//glScalef(0.5,0.5,0.5);	
+			player->DrawColor();
+		glPopMatrix();
+	//	glRotatef(roty, 0, 1, 0);
+	//	glRotatef(rotx, 1, 0, 0);
 
 
-	inv->Draw();
+	//	glPushMatrix();
+	//		glTranslatef(0,0.02,0);
+	//		player->DrawColor();	
+	//	glPopMatrix();
+		glRotatef(flip_angle,1,0,0);
 	
-	
-	
-	//HUD (Hud dabangg dabangg)
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glOrtho(0.0, win.width, win.height, 0.0, -1.0, 10.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-        glDisable(GL_LIGHTING);
-        glDisable(GL_LIGHT0);
-	glClear(GL_DEPTH_BUFFER_BIT);
+		room->DrawColor();
+	//	glPushMatrix();
+	//		glRotatef(-roty+180, 0, 1, 0);
+	//		glRotatef(-rotx, 1, 0, 0);
+	//		glTranslatef(p->curx,p->cury,p->curz);
+	//		player->DrawColor();
+	//	glPopMatrix();
+		glPushMatrix();
+	//		glTranslatef(10,2,1);
+	//		glRotatef(random_angle, 0,1,0);
+	//		glScalef(0.5,0.5,0.5);
+	//		randomFace->Draw();
+		glPopMatrix();
+		for(int i = 0; i < targets.size() ; i++)
+		{
+			if(targets[i].reached==false)
+			{
+				glPushMatrix();
+					glTranslatef(targets[i].x,targets[i].y,targets[i].z);
+					glRotatef(random_angle, 0,1,0);
+					glScalef(0.25,0.25,0.25);
+					randomFace->Draw();
+				glPopMatrix();
+			}
+		}
+		glTranslatef(0, -0.02,0);
+		glRotatef(180,1,0,0);
 
-	glBegin(GL_QUADS);
-	    glColor3f(0.8, 0.4, 0.4);
-	    glVertex2f(0.0, 0.0);
-	    glVertex2f(15*win.width/100, 0.0);
-	    glVertex2f(15*win.width/100, win.height);
-	    glVertex2f(0.0, win.height);
-	glEnd();
-	
-	glBegin(GL_QUADS);
-	    glColor3f(0, 0, 0.5);
-	    glVertex2f(10, 400);
-	    glVertex2f(15*win.width/100 - 10, 400);
-	    glVertex2f(15*win.width/100 - 10, win.height-10);
-	    glVertex2f(10, win.height - 10);
-	glEnd();
-	
-	//printing text
-	const char* x = "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \n Use w to take screenshot\n Monkeys to go:";
-	const char * rem="0"; //sprintf(rem,"%d", co);
-	unsigned char* y;
-	y = (unsigned char*) x;//strcat(x,rem);
-	glColor3f(0,0,0);
-	glRasterPos2i(10, 100);
-	glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
 
-	// Making sure we can render 3d again
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
+		inv->Draw();
+	
+	
+	
+		//HUD (Hud dabangg dabangg)
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glOrtho(0.0, win.width, win.height, 0.0, -1.0, 10.0);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_LIGHT0);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		
+		int hud_width = 15*win.width/100;
+		int hud_pad = 15;
+		glBegin(GL_QUADS);
+		    glColor3f(0.8, 0.4, 0.4);
+		    glVertex2f(0.0, 0.0);
+		    glVertex2f(hud_width, 0.0);
+		    glVertex2f(hud_width, win.height);
+		    glVertex2f(0.0, win.height);
+		glEnd();
+		
+		glBegin(GL_QUADS);
+		    glColor3f(0, 0, 0.5);
+		    glVertex2f(hud_pad, win.height+hud_pad-hud_width);
+		    glVertex2f(hud_width - hud_pad, win.height+hud_pad-hud_width);
+		    glVertex2f(hud_width - hud_pad, win.height-hud_pad);
+		    glVertex2f(hud_pad, win.height - hud_pad);
+		glEnd();
+		glDisable(GL_PROGRAM_POINT_SIZE);
+		
+		//lookat arrow
+		int map_ox = hud_width/2;
+		int map_oy = win.height - hud_width/2;
+		
+		glColor3f(0.0f, 1.0f, 0.0f);
+		glPointSize(1);
+		glBegin(GL_LINES);
+		    glVertex3f(map_ox + p->z*5 , map_oy + p->x*5,0);
+		    glVertex3f(map_ox + p->z*5 +p->lz*20, map_oy + p->x*5 + p->lx*20,0);
+		glEnd();
+		
+		int point_size = 4 + abs(6 * sin(random_angle*PI/180));
+		glPointSize(point_size);
+		
+		glBegin(GL_POINTS);
+			//tux
+			glColor3f(1.0f, 0.0f, 0.0f);
+			glVertex3f(map_ox + p->z*5 , map_oy + p->x*5,0);
+			glColor3f(1,1,0);
+			//targets
+			for(int i=0;i<targets.size();i++)
+			{
+				if(targets[i].reached!=true)
+				{
+					glVertex3f(map_ox + targets[i].z*5 , map_oy + targets[i].x*5,0);
+				}
+			}
+		glEnd();
+		
+		//printing text
+		char buffer [5000];
+		
+		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse w to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
+		unsigned char* y;
+		y = (unsigned char*) buffer;//strcat(x,rem);
+		glColor3f(0,0,0);
+		glRasterPos2i(hud_pad, 100);
+		glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
+		// Making sure we can render 3d again
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+	}
 	glutSwapBuffers();	
 	glFlush(); 
 	//cout<<rotx<<" "<<roty<<" "<<rotz<<" "<<p->x<<" "<<p->y<<" "<<p->z<<endl; 
@@ -307,29 +383,36 @@ void rotate(int new_angle)
 void Level::keyPress(unsigned char key, int x, int y)
 {
 	//normal key press events
-	if( key == 'w')
+	if(has_started)
 	{
-		p->move(1);
-		//p->z+=0.3;
+		if( key == 'w')
+		{
+			p->move(1);
+			//p->z+=0.3;
+		}
+		else if( key == 's')
+		{
+			p->move(-1);
+			//p->z-=0.3;
+		}
+		else if(key == 'a')
+		{
+			p->angle -= 0.1f;p->orient(p->angle);
+			//p->x+=0.3;
+		}
+		else if(key == 'd')
+		{
+			p->angle +=0.1f;p->orient(p->angle);
+		//	p->x-=0.3;
+		}
+		else if(key == 'q')
+		{
+			glutTimerFunc(100, rotate , 1 );
+		}
 	}
-	else if( key == 's')
+	if(key == 'y')
 	{
-		p->move(-1);
-		//p->z-=0.3;
-	}
-	else if(key == 'a')
-	{
-		p->angle -= 0.1f;p->orient(p->angle);
-		//p->x+=0.3;
-	}
-	else if(key == 'd')
-	{
-		p->angle +=0.1f;p->orient(p->angle);
-	//	p->x-=0.3;
-	}
-	else if(key == 'q')
-	{
-		glutTimerFunc(100, rotate , 1 );
+		has_started = true;
 	}
 ////////else if(key == 'i')
 ////////{
@@ -352,16 +435,12 @@ void Level::keyPress(unsigned char key, int x, int y)
 ////////	exit(0);
 ////////}
 
-	co = 0;
 	for(int i=0; i<targets.size(); i++)
 	{
 		if((targets[i].x-(p->x+p->lx))*(targets[i].x-(p->x+p->lx))+(targets[i].z-(p->lz+p->z))*(targets[i].z-(p->lz+p->z)) <= 1 && targets[i].reached == false)
 		{
 			targets[i].reached = true;
 			p->points += targets[i].points;
-		}
-		else
-		{
 			co++;
 		}
 	}

@@ -125,8 +125,8 @@ void rotate()
 
 void Game::initWindow(int *argc, char ** argv)
 {
-	win.width = 640;
-	win.height = 480;
+	win.width = 1366;
+	win.height = 768;
 	win.title = "Pogo flip";
 	win.field_of_view_angle = 45;
 	win.z_near = 0.1f;
