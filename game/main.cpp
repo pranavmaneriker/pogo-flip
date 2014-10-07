@@ -1,11 +1,18 @@
 #include<GL/glut.h>
 #include<GL/freeglut.h>
+#include <GL/gl.h>	// Header File For The OpenGL32 Library
+#include <GL/glu.h>	// Header File For The GLu32 Library
+#include <stdio.h>      // Header file for standard file i/o.
+#include <stdlib.h>     // Header file for malloc/free.
+#include <unistd.h>     // needed to sleep.
 #include<bits/stdc++.h>
 
 //Custom Libraries
 //#include "../libs/obj_loader.cpp"
 #include "../libs/tiny_obj_loader.cc"
 #include "../libs/window.h"
+#include<SOIL/SOIL.h>
+
 glutWindow win;
 
 using namespace std;
@@ -23,7 +30,6 @@ class Game{
 	void initWindow(int * argc, char ** argv);
 	Level *level;
 	string level_name;
-
 	
 	public:
 	Game();
@@ -82,12 +88,20 @@ void Game::specialKeyPress(int key, int x, int y)
 	level->specialKeyPress(key,x,y);
 }
 
+GLuint texture[1];
+
 void Game::initGL()
 {
+	glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
+	glClearDepth(1.0);				// Enables Clearing Of The Depth Buffer
+	glDepthFunc(GL_LESS);			// The Type Of Depth Test To Do
+	glEnable(GL_DEPTH_TEST);			// Enables Depth Testing
+	glShadeModel(GL_SMOOTH);			// Enables Smooth Color Shading
+
 	glClearColor(0.5,0.5,0.5,1.0);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        gluPerspective(45,640.0/480.0,1.0,500.0);
+        gluPerspective(45,640.0/480.0,1.0,1000.0);
         glMatrixMode(GL_MODELVIEW);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_LIGHTING);
@@ -122,11 +136,11 @@ void Game::initWindow(int *argc, char ** argv)
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );  // Display Mode
 	glutInitWindowSize(win.width,win.height);					// set window size
 	glutCreateWindow(win.title);								// create Window
-	glutDisplayFunc(display1);									// register Display Function
-    	glutKeyboardFunc(keyPress1);								// register Keyboard Handler
-    	glutSpecialFunc(specialKeyPress1);								// register Keyboard Handler
+	glutDisplayFunc(&display1);									// register Display Function
+    	glutKeyboardFunc(&keyPress1);								// register Keyboard Handler
+    	glutSpecialFunc(&specialKeyPress1);								// register Keyboard Handler
 	glutFullScreen();
-	glutIdleFunc(rotate);
+	glutIdleFunc(&rotate);
 	initGL();
 	glutMainLoop();
 }
