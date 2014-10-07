@@ -46,7 +46,7 @@ class Model_OBJ{
 	vector<tinyobj::shape_t> shapes;
 	vector<tinyobj::material_t> materials;
 
-	bool Load(const char* filename, const char* basepath = NULL)
+	bool Load(const char* filename, const char* basepath = NULL, bool tex = false)
 	{
 	  std::cout << "Loading " << filename << std::endl;
 	  string err = tinyobj::LoadObj(shapes, materials, filename, basepath);
@@ -54,8 +54,14 @@ class Model_OBJ{
 	    std::cerr << err << std::endl;
 	    return false;
 	  }
+	  if(tex)
+	  {
+		  LoadTexture
+	  }
 	  return true;
+
 	}
+
 	void Draw()
 	{
 		
@@ -160,7 +166,8 @@ Level::Level(string &l)
 	player = new Model_OBJ;
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
-	inv->Load("../rooms/Level_1_test.obj");
+	//inv->Load("../rooms/Level_1_test.obj");
+	inv->Load("../rooms/SnowTerrain/SnowTerrain.obj","../rooms/SnowTerrain/");
 	player->Load("../models/Tux.obj", "../models/");
 	randomFace->Load("../models/monkey.obj");
 	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
@@ -240,7 +247,7 @@ void Level::display()
 	glRotatef(180,1,0,0);
 
 
-	inv->Draw();
+	inv->DrawTexture();
 	
 	
 	
@@ -274,7 +281,7 @@ void Level::display()
 	glEnd();
 	
 	//printing text
-	const char* x = "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \n Use w to take screenshot\n Monkeys to go:";
+	const char* x = "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \n Use r to take screenshot\n Monkeys to go:";
 	const char * rem="0"; //sprintf(rem,"%d", co);
 	unsigned char* y;
 	y = (unsigned char*) x;//strcat(x,rem);
@@ -330,6 +337,10 @@ void Level::keyPress(unsigned char key, int x, int y)
 	else if(key == 'q')
 	{
 		glutTimerFunc(100, rotate , 1 );
+	}
+	else if(key =='r')
+	{
+		takeScreenShot();
 	}
 ////////else if(key == 'i')
 ////////{

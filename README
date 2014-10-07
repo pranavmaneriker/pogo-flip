@@ -7,6 +7,7 @@ Requirements:
 freeglut3-dev
 libsoil
 libassimp-dev
+libdevil-dev
 May be using tinyobjloader from https://github.com/syoyo/tinyobjloader
 
 compilation:
