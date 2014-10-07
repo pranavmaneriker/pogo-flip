@@ -162,10 +162,10 @@ Level::Level(string &l)
 	player = new Model_OBJ;
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
-	inv->Load("../rooms/Level_1_test.obj");
+	inv->Load("../rooms/Level_1_test.obj","../rooms/");
 	player->Load("../models/Tux.obj", "../models/");
-	randomFace->Load("../models/monkey.obj");
-	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
+	randomFace->Load("../models/monkey.obj","../models/");
+	room->Load(&cur_level_path[0],"../rooms/");	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
 	p = new Player;
 	p->angle=0;
@@ -248,24 +248,10 @@ void Level::display()
 	//	glRotatef(rotx, 1, 0, 0);
 
 
-	//	glPushMatrix();
-	//		glTranslatef(0,0.02,0);
-	//		player->DrawColor();	
-	//	glPopMatrix();
 		glRotatef(flip_angle,1,0,0);
 	
-		room->DrawColor();
-	//	glPushMatrix();
-	//		glRotatef(-roty+180, 0, 1, 0);
-	//		glRotatef(-rotx, 1, 0, 0);
-	//		glTranslatef(p->curx,p->cury,p->curz);
-	//		player->DrawColor();
-	//	glPopMatrix();
 		glPushMatrix();
-	//		glTranslatef(10,2,1);
-	//		glRotatef(random_angle, 0,1,0);
-	//		glScalef(0.5,0.5,0.5);
-	//		randomFace->Draw();
+			room->DrawColor();
 		glPopMatrix();
 		for(int i = 0; i < targets.size() ; i++)
 		{
@@ -275,7 +261,7 @@ void Level::display()
 					glTranslatef(targets[i].x,targets[i].y,targets[i].z);
 					glRotatef(random_angle, 0,1,0);
 					glScalef(0.25,0.25,0.25);
-					randomFace->Draw();
+					randomFace->DrawColor();
 				glPopMatrix();
 			}
 		}
@@ -283,7 +269,7 @@ void Level::display()
 		glRotatef(180,1,0,0);
 
 
-		inv->Draw();
+		inv->DrawColor();
 	
 	
 	
@@ -364,6 +350,7 @@ void Level::display()
 	}
 	glutSwapBuffers();	
 	glFlush(); 
+	alListener3f(AL_POSITION,p->x,p->y,p->z);
 	//cout<<rotx<<" "<<roty<<" "<<rotz<<" "<<p->x<<" "<<p->y<<" "<<p->z<<endl; 
 }
 

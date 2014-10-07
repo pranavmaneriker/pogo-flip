@@ -7,11 +7,15 @@ Requirements:
 freeglut3-dev
 libsoil
 libassimp-dev
+libopenal-dev
+libdevil-dev
 May be using tinyobjloader from https://github.com/syoyo/tinyobjloader
+libal-dev
+libalut-dev
 
 compilation:
 
-g++ game/main.cpp -o game -lGLU -lglut -lGL -lSOIL
+g++ game/main.cpp -o game -lGLU -lglut -lGL -lSOIL -lopanal -lalut
 
 Obj file exporting from blender:
 Include

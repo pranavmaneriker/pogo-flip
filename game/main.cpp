@@ -13,6 +13,13 @@
 #include "../libs/window.h"
 #include<SOIL/SOIL.h>
 
+//music/sound
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alut.h>
+
+
+
 glutWindow win;
 
 using namespace std;
@@ -145,8 +152,78 @@ void Game::initWindow(int *argc, char ** argv)
 	glutMainLoop();
 }
 
+//Add this to level to change sounds based on player location
+int initMusic()
+{
+#define NUM_BUFFERS 1
+#define NUM_SOURCES 1
+	alGetError();
+
+	ALuint buffers[NUM_BUFFERS];
+	int error;
+	// Create the buffers
+	alGenBuffers(1, buffers);
+	if ((error = alGetError()) != AL_NO_ERROR)
+	{
+	  printf("alGenBuffers : %d", error);
+	  return 0;
+	}
+	
+	ALenum     format;
+	ALsizei    size;
+	ALsizei    freq;
+	ALboolean  loop;
+	ALvoid*    data;
+
+	char *path = "../sounds/test.wav";
+	buffers[0] = alutCreateBufferFromFile(path);
+	if ((error = alGetError()) != AL_NO_ERROR)
+	{
+	  printf("alBufferData buffer 0 : %d", error);
+	  // Delete buffers
+	  alDeleteBuffers(NUM_BUFFERS, buffers);
+	  return 0;
+	}
+
+	if((error = alutGetError()))
+	{
+		cout<<"File error:"<<alutGetErrorString(error)<<endl;
+	}
+
+	ALuint source[NUM_SOURCES];
+	// Generate the sources
+	alGenSources(NUM_SOURCES, source);
+	if ((error = alGetError()) != AL_NO_ERROR)
+	{
+	  printf("alGenSources : %d", error);
+	  return 0;
+	}
+	
+	alSourcei(source[0], AL_BUFFER, buffers[0]);
+	if ((error = alGetError()) != AL_NO_ERROR)
+	{
+	  printf("alSourcei : %d", error);
+	  return 0;
+	}
+
+	ALfloat listenerOri[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f };	
+
+        alSource3f (source[0], AL_POSITION, 0,0,0);
+        alSource3f (source[0], AL_VELOCITY, 0,0,0);
+        alSource3f (source[0], AL_DIRECTION, 0,0,1);
+
+//	alListener3f(AL_POSITION,0,0,1.0);
+	alListener3f(AL_VELOCITY,0,0,0);
+	alListenerfv(AL_ORIENTATION,listenerOri);
+	
+	alSourcePlay(source[0]);
+	return 1;
+}
+
 void Game::start(int *argc, char ** argv)
 {
+	alutInit(argc, argv);
+	initMusic();
 	initWindow(argc,argv);
 }
 
