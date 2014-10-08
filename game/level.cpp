@@ -38,6 +38,16 @@ class Target{
 };
 float flip_angle;	
 
+void saveScreenShot()
+{
+	int save_result = SOIL_save_screenshot
+	(
+		"awesomenessity.bmp",
+		SOIL_SAVE_TYPE_BMP,
+		0, 0, 1024, 768
+	);
+}
+
 class Model_OBJ{
 	public:
 	Model_OBJ()
@@ -46,7 +56,21 @@ class Model_OBJ{
 	vector<tinyobj::shape_t> shapes;
 	vector<tinyobj::material_t> materials;
 
-	bool Load(const char* filename, const char* basepath = NULL)
+	bool LoadTextures(const char * basepath)
+	{
+		tinyobj::material_t mat;
+		for(unsigned int i =0 ; i<shapes.size();++i)
+		{
+			if(!shapes[i].mesh.material_ids.empty())
+			{
+				mat = materials[shapes[i].mesh.material_ids[0]];	//assuming one material per shape
+				
+			}
+		}
+		return true;
+	}
+
+	bool Load(const char* filename, const char* basepath = NULL,bool tex=false)
 	{
 	  std::cout << "Loading " << filename << std::endl;
 	  string err = tinyobj::LoadObj(shapes, materials, filename, basepath);
@@ -54,8 +78,13 @@ class Model_OBJ{
 	    std::cerr << err << std::endl;
 	    return false;
 	  }
+	  if(tex)
+	  {
+		LoadTextures(basepath);
+	  }
 	  return true;
 	}
+
 	void Draw()
 	{
 		
@@ -112,12 +141,15 @@ class Model_OBJ{
 		glEnableClientState(GL_NORMAL_ARRAY);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		tinyobj::mesh_t mesh;
+
+		
+
 		for(int i=0;i<shapes.size();++i)
 		{
 			mesh = shapes[i].mesh;
 
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
-			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
+			//glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
 		//
 		}		
@@ -337,7 +369,7 @@ void Level::display()
 		//printing text
 		char buffer [5000];
 		
-		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse w to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
+		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
 		unsigned char* y;
 		y = (unsigned char*) buffer;//strcat(x,rem);
 		glColor3f(0,0,0);
@@ -395,6 +427,10 @@ void Level::keyPress(unsigned char key, int x, int y)
 		else if(key == 'q')
 		{
 			glutTimerFunc(100, rotate , 1 );
+		}
+		else if(key == 'r')
+		{
+			saveScreenShot();
 		}
 	}
 	if(key == 'y')

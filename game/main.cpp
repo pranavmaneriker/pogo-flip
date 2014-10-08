@@ -13,6 +13,10 @@
 #include "../libs/window.h"
 #include<SOIL/SOIL.h>
 
+//#include<IL/il.h>
+//#include<IL/ilut.h>
+//#include<IL/ilu.h>
+
 //music/sound
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -219,11 +223,27 @@ int initMusic()
 	alSourcePlay(source[0]);
 	return 1;
 }
+void initImage()
+{
+////////ILuint ImageName;
+////////ilGenImages(1, &ImageName);
+////////ilBindImage(ImageName);
+
+////////ilLoadImage("img.bmp");
+////////ILuint Width, Height;
+////////int Width = ilGetInteger(IL_IMAGE_WIDTH);
+////////int Height = ilGetInteger(IL_IMAGE_HEIGHT);
+////////ILubyte *Data = ilGetData();
+////////GLuint Texture;
+////////Texture = ilutGLBindTexImage().
+}
 
 void Game::start(int *argc, char ** argv)
 {
 	alutInit(argc, argv);
 	initMusic();
+//	ilInit();
+	initImage();
 	initWindow(argc,argv);
 }
 
