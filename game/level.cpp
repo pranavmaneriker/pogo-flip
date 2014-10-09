@@ -48,6 +48,24 @@ void saveScreenShot()
 	);
 }
 
+GLuint tex_2d[10] ;
+
+void initImage()
+{
+	tex_2d[0] = SOIL_load_OGL_texture
+	(
+		"../rooms/SnowTerrain/686.bmp",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_INVERT_Y
+	);
+	if( 0 == tex_2d )
+	{	
+		printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
+	}
+}
+
+
 class Model_OBJ{
 	public:
 	Model_OBJ()
@@ -55,22 +73,42 @@ class Model_OBJ{
 	}
 	vector<tinyobj::shape_t> shapes;
 	vector<tinyobj::material_t> materials;
+	map<string,GLuint> texmaps;
+	string mtlpath;
 
-	bool LoadTextures(const char * basepath)
+	bool LoadTextures()
 	{
 		tinyobj::material_t mat;
+		string path;
 		for(unsigned int i =0 ; i<shapes.size();++i)
 		{
 			if(!shapes[i].mesh.material_ids.empty())
 			{
 				mat = materials[shapes[i].mesh.material_ids[0]];	//assuming one material per shape
-				
+				if(!mat.diffuse_texname.empty())
+				{
+					cout<<"Loading texture: "<<mat.diffuse_texname<<endl;
+					path = mtlpath+mat.diffuse_texname;
+					GLuint tex = SOIL_load_OGL_texture(
+						path.c_str(),
+						SOIL_LOAD_AUTO,
+						SOIL_CREATE_NEW_ID,
+						SOIL_FLAG_INVERT_Y
+					);
+					cout<<"Loaded"<<endl;
+					if( 0 == tex )
+					{	
+						printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
+					}
+
+					texmaps[mat.name] = tex;
+				}
 			}
 		}
 		return true;
 	}
 
-	bool Load(const char* filename, const char* basepath = NULL,bool tex=false)
+	bool Load(const char* filename, const char* basepath = NULL)
 	{
 	  std::cout << "Loading " << filename << std::endl;
 	  string err = tinyobj::LoadObj(shapes, materials, filename, basepath);
@@ -78,10 +116,7 @@ class Model_OBJ{
 	    std::cerr << err << std::endl;
 	    return false;
 	  }
-	  if(tex)
-	  {
-		LoadTextures(basepath);
-	  }
+	  mtlpath = basepath;
 	  return true;
 	}
 
@@ -141,15 +176,26 @@ class Model_OBJ{
 		glEnableClientState(GL_NORMAL_ARRAY);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		tinyobj::mesh_t mesh;
-
-		
+		int mat;
+		int oldMat = -1;
 
 		for(int i=0;i<shapes.size();++i)
 		{
 			mesh = shapes[i].mesh;
+			mat = mesh.material_ids[0];
+			if(mat !=oldMat)
+			{
+				oldMat = mat;
+				glMaterialfv(GL_FRONT, GL_AMBIENT, materials[mat].ambient);
+				glMaterialfv(GL_FRONT, GL_DIFFUSE, materials[mat].diffuse);
+				glMaterialfv(GL_FRONT, GL_SPECULAR, materials[mat].specular);
+				glMaterialfv(GL_FRONT, GL_SHININESS, &materials[mat].shininess);
+			}	
 
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
-			//glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
+			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));
+			
+			glTexCoordPointer(3,GL_FLOAT, 0, &mesh.texcoords[0]);
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
 		//
 		}		
@@ -181,8 +227,14 @@ class Level{
 	void keyPress(unsigned char ch, int x, int y);
 	void specialKeyPress(int key, int x, int y);
 	void rotateFace();
+	void initImageTextures();
 };
 
+void
+Level::initImageTextures()
+{
+	inv->LoadTextures();	
+}
 
 Level::Level(string &l)
 {
@@ -194,7 +246,8 @@ Level::Level(string &l)
 	player = new Model_OBJ;
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
-	inv->Load("../rooms/Level_1_test.obj","../rooms/");
+	//inv->Load("../rooms/Level_1_test.obj","../rooms/");
+	inv->Load("../rooms/texture/texture.obj", "../rooms/texture/");
 	player->Load("../models/Tux.obj", "../models/");
 	randomFace->Load("../models/monkey.obj","../models/");
 	room->Load(&cur_level_path[0],"../rooms/");	//&cur_level_path[0]  might avoid warning but is it safe?	
@@ -221,6 +274,7 @@ void Level::display()
 {
 	if(!has_started)
 	{
+		glDisable(GL_TEXTURE_2D);
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
@@ -259,6 +313,7 @@ void Level::display()
 	}
 	else
 	{
+		glDisable(GL_TEXTURE_2D);
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
@@ -301,8 +356,10 @@ void Level::display()
 		glRotatef(180,1,0,0);
 
 
-		inv->DrawColor();
-	
+		glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
+		//inv->DrawColor();
+		inv->DrawTexture();
+		glDisable(GL_TEXTURE_2D);
 	
 	
 		//HUD (Hud dabangg dabangg)
@@ -381,7 +438,7 @@ void Level::display()
 		glMatrixMode(GL_MODELVIEW);
 	}
 	glutSwapBuffers();	
-	glFlush(); 
+	//glFlush(); 
 	alListener3f(AL_POSITION,p->x,p->y,p->z);
 	//cout<<rotx<<" "<<roty<<" "<<rotz<<" "<<p->x<<" "<<p->y<<" "<<p->z<<endl; 
 }

@@ -53,6 +53,8 @@ class Game{
 
 Game * g;
 
+
+
 void Game::rotateFace()
 {
 	level->rotateFace();
@@ -76,7 +78,6 @@ void specialKeyPress1(int key, int x, int y)
 Game::Game()
 {
 	level_name = "Level_1";
-	level = new Level(level_name);
 }
 
 void Game::display()
@@ -99,7 +100,6 @@ void Game::specialKeyPress(int key, int x, int y)
 	level->specialKeyPress(key,x,y);
 }
 
-GLuint texture[1];
 
 void Game::initGL()
 {
@@ -152,7 +152,11 @@ void Game::initWindow(int *argc, char ** argv)
     	glutSpecialFunc(&specialKeyPress1);								// register Keyboard Handler
 	glutFullScreen();
 	glutIdleFunc(&rotate);
+	
 	initGL();
+	level = new Level(level_name);
+	//apparently loading textures here is fine. dahell pipeline?
+	level->initImageTextures();
 	glutMainLoop();
 }
 
@@ -223,27 +227,12 @@ int initMusic()
 	alSourcePlay(source[0]);
 	return 1;
 }
-void initImage()
-{
-////////ILuint ImageName;
-////////ilGenImages(1, &ImageName);
-////////ilBindImage(ImageName);
-
-////////ilLoadImage("img.bmp");
-////////ILuint Width, Height;
-////////int Width = ilGetInteger(IL_IMAGE_WIDTH);
-////////int Height = ilGetInteger(IL_IMAGE_HEIGHT);
-////////ILubyte *Data = ilGetData();
-////////GLuint Texture;
-////////Texture = ilutGLBindTexImage().
-}
 
 void Game::start(int *argc, char ** argv)
 {
 	alutInit(argc, argv);
 	initMusic();
 //	ilInit();
-	initImage();
 	initWindow(argc,argv);
 }
 
