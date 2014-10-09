@@ -1,5 +1,6 @@
 #define PI 3.14159265359
 float rotx,roty,rotz;
+GLuint p1,v1,f1;
 int co = 0;
 class Player{
 	public:
@@ -48,13 +49,13 @@ void saveScreenShot()
 	);
 }
 
-GLuint tex_2d[10] ;
+GLuint tex_2d[1] ;
 
 void initImage()
 {
 	tex_2d[0] = SOIL_load_OGL_texture
 	(
-		"../rooms/SnowTerrain/686.bmp",
+		"../sprites/images.jpg",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_INVERT_Y
@@ -93,7 +94,7 @@ class Model_OBJ{
 						path.c_str(),
 						SOIL_LOAD_AUTO,
 						SOIL_CREATE_NEW_ID,
-						SOIL_FLAG_INVERT_Y
+						SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y
 					);
 					cout<<"Loaded"<<endl;
 					if( 0 == tex )
@@ -161,7 +162,7 @@ class Model_OBJ{
 				glMaterialfv(GL_FRONT, GL_SHININESS, &materials[mat].shininess);
 			}	
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
-			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
+			if(!mesh.normals.empty())glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
 		//
 		}		
@@ -191,11 +192,11 @@ class Model_OBJ{
 				glMaterialfv(GL_FRONT, GL_SPECULAR, materials[mat].specular);
 				glMaterialfv(GL_FRONT, GL_SHININESS, &materials[mat].shininess);
 			}	
-			glBindTexture(GL_TEXTURE_2D, texmaps[materials[mat].name]);	
+		//	glBindTexture(GL_TEXTURE_2D, texmaps[materials[mat].name]);	
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
-			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));
+			if(!mesh.normals.empty())glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));
 			
-			glTexCoordPointer(3,GL_FLOAT, 0, &mesh.texcoords[0]);
+			if(!mesh.texcoords.empty())glTexCoordPointer(3,GL_FLOAT, 0, &mesh.texcoords[0]);
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
 		//
 		}		
@@ -233,7 +234,7 @@ class Level{
 void
 Level::initImageTextures()
 {
-	inv->LoadTextures();	
+	//inv->LoadTextures();	
 }
 
 Level::Level(string &l)
@@ -246,8 +247,9 @@ Level::Level(string &l)
 	player = new Model_OBJ;
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
-	//inv->Load("../rooms/Level_1_test.obj","../rooms/");
-	inv->Load("../rooms/texture/texture.obj", "../rooms/texture/");
+	inv->Load("../rooms/Level_1_test.obj","../rooms/");
+	//inv->Load("../rooms/texture/texture.obj", "../rooms/texture/");
+	//inv->Load("../rooms/Small Tropical Island/Small Tropical Island.obj", "../rooms/Small Tropical Island/");
 	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
 	player->Load("../models/Tux.obj", "../models/");
 	randomFace->Load("../models/monkey.obj","../models/");
@@ -273,9 +275,12 @@ void Level::rotateFace()
 
 void Level::display()
 {
+
+	glUseProgram(p1);	//blinn-phong shading
 	if(!has_started)
 	{
-		glDisable(GL_TEXTURE_2D);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, tex_2d[0]);
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
@@ -308,6 +313,7 @@ void Level::display()
 		glRasterPos2i(win.width/2 - 75, win.height/4 +75);
 		glutBitmapString(GLUT_BITMAP_HELVETICA_12, y);
 		
+		glDisable(GL_TEXTURE_2D);
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
@@ -357,7 +363,7 @@ void Level::display()
 		glRotatef(180,1,0,0);
 
 		glPushMatrix();
-			glTranslatef(0,-1,0);
+			//glTranslatef(0,-50,0);
 			glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
 			//inv->DrawColor();
 			inv->DrawTexture();

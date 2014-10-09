@@ -1,3 +1,4 @@
+#include<GL/glew.h>	//Shading
 #include<GL/glut.h>
 #include<GL/freeglut.h>
 #include <GL/gl.h>	// Header File For The OpenGL32 Library
@@ -5,6 +6,7 @@
 #include <stdio.h>      // Header file for standard file i/o.
 #include <stdlib.h>     // Header file for malloc/free.
 #include <unistd.h>     // needed to sleep.
+#include<cstring>
 #include<bits/stdc++.h>
 
 //Custom Libraries
@@ -49,7 +51,67 @@ class Game{
 
 Game * g;
 
+//shaders functions need to be moved to appropriate file
 
+
+char *textFileRead(char *fn) {
+
+
+	FILE *fp;
+	char *content = NULL;
+
+	int count=0;
+
+	if (fn != NULL) {
+		fp = fopen(fn,"rt");
+
+		if (fp != NULL) {
+      
+      fseek(fp, 0, SEEK_END);
+      count = ftell(fp);
+      rewind(fp);
+
+			if (count > 0) {
+				content = (char *)malloc(sizeof(char) * (count+1));
+				count = fread(content,sizeof(char),count,fp);
+				content[count] = '\0';
+			}
+			fclose(fp);
+		}
+	}
+	return content;
+}
+
+void setShaders()
+{
+  	char *vs = NULL,*fs = NULL;
+
+	v1 = glCreateShader(GL_VERTEX_SHADER);
+	f1 = glCreateShader(GL_FRAGMENT_SHADER);
+
+	vs = textFileRead((char*)"../libs/pixel.vert");
+	fs = textFileRead((char*)"../libs/pixel.frag");
+
+	const char * vv = vs;
+	const char * ff = fs;
+
+
+	glShaderSource(v1, 1, &vv,NULL);
+	glShaderSource(f1, 1, &ff,NULL);
+
+	free(vs);free(fs);
+
+	glCompileShader(v1);
+	glCompileShader(f1);
+
+	p1 = glCreateProgram();
+	glAttachShader(p1,f1);
+	glAttachShader(p1,v1);
+	glLinkProgram(p1);
+
+}
+
+//shading code ends
 
 void Game::rotateFace()
 {
@@ -102,7 +164,7 @@ void Game::initGL()
 	glClearDepth(1.0);				// Enables Clearing Of The Depth Buffer
 	glDepthFunc(GL_LESS);			// The Type Of Depth Test To Do
 	glEnable(GL_DEPTH_TEST);			// Enables Depth Testing
-	glShadeModel(GL_SMOOTH);			// Enables Smooth Color Shading
+	//glShadeModel(GL_SMOOTH);			// Enables Smooth Color Shading
 
 	glClearColor(0.5,0.5,0.5,1.0);
         glMatrixMode(GL_PROJECTION);
@@ -121,6 +183,10 @@ void Game::initGL()
         glLoadIdentity();
         float pos[]={-1.0,1.0,-2.0,1.0};
         glLightfv(GL_LIGHT0,GL_POSITION,pos);
+	
+	//blinn-phong
+	glewInit();
+	setShaders();
 }
 
 void rotate()
@@ -131,7 +197,7 @@ void rotate()
 
 void Game::initWindow(int *argc, char ** argv)
 {
-	win.width = 1366;
+	win.width = 1024;
 	win.height = 768;
 	win.title = "Pogo flip";
 	win.field_of_view_angle = 45;
@@ -152,6 +218,7 @@ void Game::initWindow(int *argc, char ** argv)
 	level = new Level(level_name);
 	//apparently loading textures here is fine. dahell pipeline?
 	level->initImageTextures();
+	initImage();
 	glutMainLoop();
 }
 
