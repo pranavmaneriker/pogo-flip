@@ -42,7 +42,7 @@ void saveScreenShot()
 {
 	int save_result = SOIL_save_screenshot
 	(
-		"awesomenessity.bmp",
+		"screenshot.bmp",
 		SOIL_SAVE_TYPE_BMP,
 		0, 0, 1024, 768
 	);
@@ -191,7 +191,7 @@ class Model_OBJ{
 				glMaterialfv(GL_FRONT, GL_SPECULAR, materials[mat].specular);
 				glMaterialfv(GL_FRONT, GL_SHININESS, &materials[mat].shininess);
 			}	
-
+			glBindTexture(GL_TEXTURE_2D, texmaps[materials[mat].name]);	
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
 			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));
 			
@@ -248,6 +248,7 @@ Level::Level(string &l)
 	randomFace = new Model_OBJ;
 	//inv->Load("../rooms/Level_1_test.obj","../rooms/");
 	inv->Load("../rooms/texture/texture.obj", "../rooms/texture/");
+	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
 	player->Load("../models/Tux.obj", "../models/");
 	randomFace->Load("../models/monkey.obj","../models/");
 	room->Load(&cur_level_path[0],"../rooms/");	//&cur_level_path[0]  might avoid warning but is it safe?	
@@ -355,12 +356,13 @@ void Level::display()
 		glTranslatef(0, -0.02,0);
 		glRotatef(180,1,0,0);
 
-
-		glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
-		//inv->DrawColor();
-		inv->DrawTexture();
-		glDisable(GL_TEXTURE_2D);
-	
+		glPushMatrix();
+			glTranslatef(0,-1,0);
+			glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
+			//inv->DrawColor();
+			inv->DrawTexture();
+			glDisable(GL_TEXTURE_2D);
+		glPopMatrix();
 	
 		//HUD (Hud dabangg dabangg)
 		glMatrixMode(GL_PROJECTION);
@@ -485,14 +487,14 @@ void Level::keyPress(unsigned char key, int x, int y)
 		{
 			glutTimerFunc(100, rotate , 1 );
 		}
-		else if(key == 'r')
-		{
-			saveScreenShot();
-		}
 	}
 	if(key == 'y')
 	{
 		has_started = true;
+	}
+	else if(key == 'r')
+	{
+		saveScreenShot();
 	}
 ////////else if(key == 'i')
 ////////{

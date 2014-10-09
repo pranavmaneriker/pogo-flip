@@ -13,10 +13,6 @@
 #include "../libs/window.h"
 #include<SOIL/SOIL.h>
 
-//#include<IL/il.h>
-//#include<IL/ilut.h>
-//#include<IL/ilu.h>
-
 //music/sound
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -103,7 +99,6 @@ void Game::specialKeyPress(int key, int x, int y)
 
 void Game::initGL()
 {
-	glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
 	glClearDepth(1.0);				// Enables Clearing Of The Depth Buffer
 	glDepthFunc(GL_LESS);			// The Type Of Depth Test To Do
 	glEnable(GL_DEPTH_TEST);			// Enables Depth Testing
