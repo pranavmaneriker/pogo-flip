@@ -2,6 +2,7 @@
 float rotx,roty,rotz;
 GLuint p1,v1,f1;
 int co = 0;
+
 class Player{
 	public:
 	float angle,ratio;
@@ -26,6 +27,7 @@ class Player{
 
 	int points;
 };
+
 class Target{
 	public:
 	float x,y,z;
@@ -49,6 +51,7 @@ void saveScreenShot()
 	);
 }
 
+//Global textures
 GLuint tex_2d[1] ;
 
 void initImage()
@@ -66,7 +69,9 @@ void initImage()
 	}
 }
 
-
+/**
+* Handling of in game objects
+**/
 class Model_OBJ{
 	public:
 	Model_OBJ()
@@ -230,13 +235,13 @@ class Level{
 	void rotateFace();
 	void initImageTextures();
 };
-
+//If objects with textures need loading
 void
 Level::initImageTextures()
 {
 	//inv->LoadTextures();	
 }
-
+//Loading level 
 Level::Level(string &l)
 {
 	has_started = false;
@@ -272,6 +277,11 @@ void Level::rotateFace()
 	random_angle +=3;
 	if(random_angle >=360) random_angle-=360;
 }
+
+/**
+* Level scene drawing function
+* Contains welcome screen also
+**/
 
 void Level::display()
 {
@@ -451,6 +461,9 @@ void Level::display()
 	//cout<<rotx<<" "<<roty<<" "<<rotz<<" "<<p->x<<" "<<p->y<<" "<<p->z<<endl; 
 }
 
+/**
+* Idle function: Rotate monkey head.
+**/
 void rotate(int new_angle)
 {
 	flip_angle+=5;
@@ -464,6 +477,9 @@ void rotate(int new_angle)
 	}
 }
 
+/**
+* Key events handling
+**/
 void Level::keyPress(unsigned char key, int x, int y)
 {
 	//normal key press events
@@ -534,6 +550,10 @@ void Level::keyPress(unsigned char key, int x, int y)
 	}
 	glutPostRedisplay();
 }
+
+/**
+* Special key events handling. Currently disabled
+**/
 
 void Level::specialKeyPress(int key,int x,int y)
 {

@@ -11,7 +11,7 @@
 
 //Custom Libraries
 //#include "../libs/obj_loader.cpp"
-#include "../libs/tiny_obj_loader.cc"
+#include "../libs/tiny_obj_loader.h"
 #include "../libs/window.h"
 #include<SOIL/SOIL.h>
 
@@ -268,7 +268,7 @@ int initMusic()
 	  printf("alGenSources : %d", error);
 	  return 0;
 	}
-	
+	alSourcei(source[0], AL_LOOPING, AL_TRUE);	
 	alSourcei(source[0], AL_BUFFER, buffers[0]);
 	if ((error = alGetError()) != AL_NO_ERROR)
 	{
@@ -294,7 +294,6 @@ void Game::start(int *argc, char ** argv)
 {
 	alutInit(argc, argv);
 	initMusic();
-//	ilInit();
 	initWindow(argc,argv);
 }
 
