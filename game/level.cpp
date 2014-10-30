@@ -220,7 +220,6 @@ class Level{
 	Model_OBJ *inv;
 	Model_OBJ *player;
 	Model_OBJ *randomFace;
-	
 	int g_rotation;
 	Player *p;
 	float random_angle;
@@ -334,8 +333,8 @@ void Level::display()
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
+		//glEnable(GL_LIGHTING);
+		
 		glLoadIdentity();
 		gluLookAt(p->x, p->y, p->z, p->x + p->lx,p->y + p->ly,p->z + p->lz, 0.0f, 1.0f, 0.0f);
 
@@ -345,7 +344,8 @@ void Level::display()
 			glRotatef(-(p->angle*180/3.14),0,1,0);
 			glTranslatef(0,0,-1);
 			glRotatef(180,0,1,0);
-			//glScalef(0.5,0.5,0.5);	
+			//glScalef(0.5,0.5,0.5);
+			glEnable(GL_LIGHT0);	
 			player->DrawColor();
 		glPopMatrix();
 	//	glRotatef(roty, 0, 1, 0);
@@ -353,9 +353,65 @@ void Level::display()
 
 
 		glRotatef(flip_angle,1,0,0);
-	
+		float high;
+		float block = 0.5; // side of each block
 		glPushMatrix();
-			room->DrawColor();
+			glColorMaterial(GL_FRONT, GL_DIFFUSE);
+			glEnable(GL_COLOR_MATERIAL);
+			//glDisable(GL_LIGHTING);
+			ifstream levelMap ("../Levels/1/map");
+			for(int i=-10; i<10; i+=1)
+			{
+				for(int j=-10;j<10;j+=1)
+				{
+					if(levelMap.is_open())
+					{
+						levelMap>>high;
+						cout<<high<<" ";
+						high*=3;
+					}
+					else
+						cout<<"Couldn't open file!";
+					//if(i+j>20)high=1;
+					//high = ((float)i+j)/10;
+					glBegin(GL_QUADS);
+						glColor3f(0,1,0);
+						glVertex3f(i - block, high, j + block);
+						glVertex3f(i + block, high, j + block);
+						glVertex3f(i + block, high, j - block);
+						glVertex3f(i - block, high, j - block);
+					glEnd();
+					glBegin(GL_QUADS);
+						glVertex3f(i - block, high, j + block);
+						glVertex3f(i + block, high, j + block);
+						glVertex3f(i + block, 0, j + block);
+						glVertex3f(i - block, 0, j + block);
+					glEnd();
+					glBegin(GL_QUADS);
+						glVertex3f(i - block, high, j + block);
+						glVertex3f(i - block, high, j - block);
+						glVertex3f(i - block, 0, j - block);
+						glVertex3f(i - block, 0, j + block);
+					glEnd();
+					glBegin(GL_QUADS);
+						glVertex3f(i + block, high, j - block);
+						glVertex3f(i - block, high, j - block);
+						glVertex3f(i - block, 0, j - block);
+						glVertex3f(i + block, 0, j - block);
+					glEnd();
+					glBegin(GL_QUADS);
+						glVertex3f(i + block, high, j + block);
+						glVertex3f(i + block, high, j - block);
+						glVertex3f(i + block, 0, j - block);
+						glVertex3f(i + block, 0, j + block);
+					glEnd();
+				}
+				cout<<endl;
+			}
+			if(levelMap.is_open())
+				levelMap.close();
+			//room->DrawColor();
+			//glEnable(GL_LIGHTING);
 		glPopMatrix();
 		for(int i = 0; i < targets.size() ; i++)
 		{
@@ -376,7 +432,7 @@ void Level::display()
 			//glTranslatef(0,-50,0);
 			glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
 			//inv->DrawColor();
-			inv->DrawTexture();
+			//inv->DrawTexture();
 			glDisable(GL_TEXTURE_2D);
 		glPopMatrix();
 	

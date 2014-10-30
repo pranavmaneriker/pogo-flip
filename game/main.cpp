@@ -8,7 +8,7 @@
 #include <unistd.h>     // needed to sleep.
 #include<cstring>
 #include<bits/stdc++.h>
-
+#include <fstream>
 //Custom Libraries
 //#include "../libs/obj_loader.cpp"
 #include "../libs/tiny_obj_loader.h"
