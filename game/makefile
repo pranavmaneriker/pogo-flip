@@ -15,5 +15,5 @@ clean:
 	rm -f *.out
 
 game: main.cpp level.cpp
-	g++ -Wall main.cpp ../libs/tiny_obj_loader.cc -o $@ $(GLLIBS) $(IMGLIBS) $(ALLIBS)
+	g++ main.cpp ../libs/tiny_obj_loader.cc -o $@ $(GLLIBS) $(IMGLIBS) $(ALLIBS)
 

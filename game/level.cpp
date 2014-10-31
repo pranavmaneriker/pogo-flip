@@ -1,4 +1,6 @@
 #define PI 3.14159265359
+#define MAPSIZE 20
+#define BLOCKSIZE 1
 float rotx,roty,rotz;
 GLuint p1,v1,f1;
 int co = 0;
@@ -223,7 +225,7 @@ class Level{
 	int g_rotation;
 	Player *p;
 	float random_angle;
-
+	float map[MAPSIZE][MAPSIZE];
 	public:
 	bool has_started;
 	vector<Target> targets;
@@ -233,6 +235,8 @@ class Level{
 	void specialKeyPress(int key, int x, int y);
 	void rotateFace();
 	void initImageTextures();
+	void drawTerrain();
+	bool doesCollide();
 };
 //If objects with textures need loading
 void
@@ -252,6 +256,20 @@ Level::Level(string &l)
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
 	inv->Load("../rooms/Level_1_test.obj","../rooms/");
+	ifstream levelMap ("../Levels/1/map");
+	for(int i=0;i<MAPSIZE;i++)
+	{
+		for(int j=0;j<MAPSIZE; j++)
+		{
+			if(levelMap.is_open())
+			{
+				levelMap>>map[i][j];
+			}
+			else
+				cout<<"Couldn't open file!";
+		}
+	}
+	levelMap.close();
 	//inv->Load("../rooms/texture/texture.obj", "../rooms/texture/");
 	//inv->Load("../rooms/Small Tropical Island/Small Tropical Island.obj", "../rooms/Small Tropical Island/");
 	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
@@ -271,6 +289,29 @@ Level::Level(string &l)
 	targets.push_back(Target(-2, 0.2 , 3, 50));
 	
 }
+
+bool Level::doesCollide()
+{
+	float del = BLOCKSIZE/2;
+	float x = p->x+p->lx - del;
+	float z = p->z+p->lz - del;
+	int i1 = floor(x/BLOCKSIZE) + MAPSIZE/2;
+	int j1 = floor(z/BLOCKSIZE) + MAPSIZE/2;
+	x += 2*del;
+	z += 2*del;
+	int i2 = floor(x/BLOCKSIZE) + MAPSIZE/2;
+	int j2 = floor(z/BLOCKSIZE) + MAPSIZE/2;
+	if(i1<=MAPSIZE && j1<=MAPSIZE && map[i1][j1]==0
+		&& i1<=MAPSIZE && j2<=MAPSIZE && map[i1][j2]==0
+		&& i2<=MAPSIZE && j1<=MAPSIZE && map[i2][j1]==0
+		&& i2<=MAPSIZE && j2<=MAPSIZE && map[i2][j2]==0
+		&& i1>=0 && i2>=0 && j1>=0 && j2>=0)
+		return false; //does not collide
+	else
+		return true; //does collide
+}
+
+
 void Level::rotateFace()
 {
 	random_angle +=3;
@@ -281,7 +322,50 @@ void Level::rotateFace()
 * Level scene drawing function
 * Contains welcome screen also
 **/
-
+void Level::drawTerrain()
+{
+	float high;
+	float block = (float)BLOCKSIZE;
+	for(int i=-MAPSIZE/2; i<MAPSIZE/2; i+=1)
+	{
+		for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
+		{
+			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*3;
+			glBegin(GL_QUADS);
+				glColor3f(0,1,0);
+				glVertex3f(i , high, j + block);
+				glVertex3f(i + block, high, j + block);
+				glVertex3f(i + block, high, j);
+				glVertex3f(i, high, j);
+			glEnd();
+			glBegin(GL_QUADS);
+				glVertex3f(i, high, j + block);
+				glVertex3f(i + block, high, j + block);
+				glVertex3f(i + block, 0, j + block);
+				glVertex3f(i, 0, j + block);
+			glEnd();
+			glBegin(GL_QUADS);
+				glVertex3f(i, high, j + block);
+				glVertex3f(i, high, j);
+				glVertex3f(i, 0, j);
+				glVertex3f(i, 0, j + block);
+			glEnd();
+			glBegin(GL_QUADS);
+				glVertex3f(i + block, high, j);
+				glVertex3f(i, high, j);
+				glVertex3f(i, 0, j);
+				glVertex3f(i + block, 0, j);
+			glEnd();
+			glBegin(GL_QUADS);
+				glVertex3f(i + block, high, j + block);
+				glVertex3f(i + block, high, j);
+				glVertex3f(i + block, 0, j);
+				glVertex3f(i + block, 0, j + block);
+			glEnd();
+		}
+		cout<<endl;
+	}
+}
 void Level::display()
 {
 
@@ -341,7 +425,7 @@ void Level::display()
 		glLoadIdentity();
 		gluLookAt(p->x, p->y, p->z, p->x + p->lx,p->y + p->ly,p->z + p->lz, 0.0f, 1.0f, 0.0f);
 		float dir[] = {p->lx,p->ly,p->lz};
-		glLightf(GL_LIGHT1,GL_SPOT_DIRECTION,dir);
+		glLightfv(GL_LIGHT1,GL_SPOT_DIRECTION,dir);
 		glEnable(GL_LIGHT1);
 		//glScalef(0.5,0.5,0.5);
 		//glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 45.0);
@@ -360,63 +444,13 @@ void Level::display()
 
 
 		glRotatef(flip_angle,1,0,0);
-		float high;
-		float block = 0.5; // side of each block
+		
 		glPushMatrix();
 			glColorMaterial(GL_FRONT, GL_DIFFUSE);
 			glEnable(GL_COLOR_MATERIAL);
 			//glDisable(GL_LIGHTING);
-			ifstream levelMap ("../Levels/1/map");
-			for(int i=-10; i<10; i+=1)
-			{
-				for(int j=-10;j<10;j+=1)
-				{
-					if(levelMap.is_open())
-					{
-						levelMap>>high;
-						cout<<high<<" ";
-						high*=3;
-					}
-					else
-						cout<<"Couldn't open file!";
-					//if(i+j>20)high=1;
-					//high = ((float)i+j)/10;
-					glBegin(GL_QUADS);
-						glColor3f(0,1,0);
-						glVertex3f(i - block, high, j + block);
-						glVertex3f(i + block, high, j + block);
-						glVertex3f(i + block, high, j - block);
-						glVertex3f(i - block, high, j - block);
-					glEnd();
-					glBegin(GL_QUADS);
-						glVertex3f(i - block, high, j + block);
-						glVertex3f(i + block, high, j + block);
-						glVertex3f(i + block, 0, j + block);
-						glVertex3f(i - block, 0, j + block);
-					glEnd();
-					glBegin(GL_QUADS);
-						glVertex3f(i - block, high, j + block);
-						glVertex3f(i - block, high, j - block);
-						glVertex3f(i - block, 0, j - block);
-						glVertex3f(i - block, 0, j + block);
-					glEnd();
-					glBegin(GL_QUADS);
-						glVertex3f(i + block, high, j - block);
-						glVertex3f(i - block, high, j - block);
-						glVertex3f(i - block, 0, j - block);
-						glVertex3f(i + block, 0, j - block);
-					glEnd();
-					glBegin(GL_QUADS);
-						glVertex3f(i + block, high, j + block);
-						glVertex3f(i + block, high, j - block);
-						glVertex3f(i + block, 0, j - block);
-						glVertex3f(i + block, 0, j + block);
-					glEnd();
-				}
-				cout<<endl;
-			}
-			if(levelMap.is_open())
-				levelMap.close();
+			drawTerrain();
+
 			//room->DrawColor();
 			//glEnable(GL_LIGHTING);
 		glPopMatrix();
@@ -479,20 +513,42 @@ void Level::display()
 		int map_ox = hud_width/2;
 		int map_oy = win.height - hud_width/2;
 		
-		glColor3f(0.0f, 1.0f, 0.0f);
+		
+		for(int i=-MAPSIZE/2; i<MAPSIZE/2; i+=1)
+		{
+			for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
+			{
+				float high = map[i+MAPSIZE/2][j+MAPSIZE/2];
+				float le, bo;
+					le = map_ox + j*5;
+					bo = map_oy + i*5;
+				glBegin(GL_QUADS);
+					if(high>0)
+						glColor3f(0.8, 0.411, 0.12);
+					else if(high<0)
+						glColor3f(0,0,0);
+					else
+						glColor3f(0,1,0);
+					glVertex2f(le, bo);
+					glVertex2f(le, bo - 5);
+					glVertex2f(le + 5, bo - 5);
+					glVertex2f(le + 5, bo);
+				glEnd();
+			}
+		}
+		glColor3f(0,0,0);
 		glPointSize(1);
 		glBegin(GL_LINES);
 		    glVertex3f(map_ox + p->z*5 , map_oy + p->x*5,0);
 		    glVertex3f(map_ox + p->z*5 +p->lz*20, map_oy + p->x*5 + p->lx*20,0);
 		glEnd();
-		
 		int point_size = 4 + abs(6 * sin(random_angle*PI/180));
 		glPointSize(point_size);
 		
 		glBegin(GL_POINTS);
 			//tux
 			glColor3f(1.0f, 0.0f, 0.0f);
-			glVertex3f(map_ox + p->z*5 , map_oy + p->x*5,0);
+			glVertex3f(map_ox + p->z*5 + p->lz*5, map_oy + p->x*5 + p->lx*5,0);
 			glColor3f(1,1,0);
 			//targets
 			for(int i=0;i<targets.size();i++)
@@ -507,7 +563,7 @@ void Level::display()
 		//printing text
 		char buffer [5000];
 		
-		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
+		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d\npos:\n(%f, %f)" , targets.size()-co, p->points, p->x + p->lx, p->z + p->lz);
 		unsigned char* y;
 		y = (unsigned char*) buffer;//strcat(x,rem);
 		glColor3f(0,0,0);
@@ -551,11 +607,19 @@ void Level::keyPress(unsigned char key, int x, int y)
 		if( key == 'w')
 		{
 			p->move(1);
+			if(doesCollide())
+			{
+				p->move(-1);
+			}
 			//p->z+=0.3;
 		}
 		else if( key == 's')
 		{
 			p->move(-1);
+			if(doesCollide())
+			{
+				p->move(1);
+			}
 			//p->z-=0.3;
 		}
 		else if(key == 'a')
