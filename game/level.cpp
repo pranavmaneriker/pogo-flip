@@ -69,7 +69,7 @@ int initImage(string path)
 	{	
 		printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
 	}
-	    glBindTexture(GL_TEXTURE_2D, texture[0]);
+	    glBindTexture(GL_TEXTURE_2D, tex_2d[lastUsed]);
 	    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
 	return tex_2d[lastUsed++];
@@ -251,7 +251,7 @@ Level::initImageTextures()
 {
 	//inv->LoadTextures();
 	string path = "../textures/grass.jpg";	
-	tex_wall = initImage(path);
+	tex_grass = initImage(path);
 }
 //Loading level 
 Level::Level(string &l)
