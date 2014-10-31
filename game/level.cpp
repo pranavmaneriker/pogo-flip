@@ -333,10 +333,19 @@ void Level::display()
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
-		//glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHTING);
 		
+
+		glMatrixMode(GL_MODELVIEW);
+
 		glLoadIdentity();
 		gluLookAt(p->x, p->y, p->z, p->x + p->lx,p->y + p->ly,p->z + p->lz, 0.0f, 1.0f, 0.0f);
+		float dir[] = {p->lx,p->ly,p->lz};
+		glLightf(GL_LIGHT1,GL_SPOT_DIRECTION,dir);
+		glEnable(GL_LIGHT1);
+		//glScalef(0.5,0.5,0.5);
+		//glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 45.0);
+	        //glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.0);
 
 		glPushMatrix();
 			glTranslatef(p->x,p->y+-1,p->z);
@@ -344,8 +353,6 @@ void Level::display()
 			glRotatef(-(p->angle*180/3.14),0,1,0);
 			glTranslatef(0,0,-1);
 			glRotatef(180,0,1,0);
-			//glScalef(0.5,0.5,0.5);
-			glEnable(GL_LIGHT0);	
 			player->DrawColor();
 		glPopMatrix();
 	//	glRotatef(roty, 0, 1, 0);
@@ -569,6 +576,8 @@ void Level::keyPress(unsigned char key, int x, int y)
 	if(key == 'y')
 	{
 		has_started = true;
+		glDisable(GL_LIGHT0);	
+		//glEnable(GL_LIGHT1);
 	}
 	else if(key == 'r')
 	{

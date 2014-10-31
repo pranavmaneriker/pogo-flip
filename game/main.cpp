@@ -181,9 +181,19 @@ void Game::initGL()
 	//draw
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
-        float pos[]={-1.0,1.0,-2.0,1.0};
+        float pos[]={-1.0,5.0,-2.0,1.0};
         glLightfv(GL_LIGHT0,GL_POSITION,pos);
+	glEnable(GL_LIGHT0);
+
 	
+	float pos1[]={0,2,-1,1.0};
+	glLightfv(GL_LIGHT1,GL_POSITION,pos1);
+	glEnable(GL_LIGHT1);
+
+	glLightfv(GL_LIGHT1, GL_AMBIENT, col);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, col);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, col);
+
 	//blinn-phong
 	glewInit();
 	setShaders();
