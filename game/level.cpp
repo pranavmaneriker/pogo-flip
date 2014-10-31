@@ -252,6 +252,8 @@ Level::initImageTextures()
 	//inv->LoadTextures();
 	string path = "../textures/grass.jpg";	
 	tex_grass = initImage(path);
+	path = "../textures/wall.jpg";
+	tex_wall = initImage(path);	
 }
 //Loading level 
 Level::Level(string &l)
@@ -338,9 +340,9 @@ void Level::drawTerrain()
 	for(int i=-MAPSIZE/2; i<MAPSIZE/2; i+=1)
 	{
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D,tex_grass);
 		for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
 		{
+			glBindTexture(GL_TEXTURE_2D,tex_grass);
 			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*3;
 			glBegin(GL_QUADS);
 				//glColor3f(0,1,0);
@@ -349,6 +351,7 @@ void Level::drawTerrain()
 				glTexCoord2f(1,1);glVertex3f(i + block, high, j);
 				glTexCoord2f(1,0);glVertex3f(i, high, j);
 			glEnd();
+			glBindTexture(GL_TEXTURE_2D,tex_wall);
 			glBegin(GL_QUADS);
 				glTexCoord2f(0,0);glVertex3f(i, high, j + block);
 				glTexCoord2f(0,1);glVertex3f(i + block, high, j + block);
@@ -438,8 +441,8 @@ void Level::display()
 			glRotatef(-(p->angle*180/3.14),0,1,0);
 			glTranslatef(0,0,-1);
 			glRotatef(180,0,1,0);
+			glEnable(GL_LIGHT0);
 			//glScalef(0.5,0.5,0.5);
-			glEnable(GL_LIGHT0);	
 			player->DrawColor();
 		glPopMatrix();
 	//	glRotatef(roty, 0, 1, 0);

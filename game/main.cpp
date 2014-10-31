@@ -181,7 +181,7 @@ void Game::initGL()
 	//draw
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
-        float pos[]={-1.0,1.0,-2.0,1.0};
+        float pos[]={0.0,1.0,0.0,1.0};
         glLightfv(GL_LIGHT0,GL_POSITION,pos);
 	
 	//blinn-phong
