@@ -419,17 +419,8 @@ void Level::display()
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LIGHTING);
 		
-
-		glMatrixMode(GL_MODELVIEW);
-
 		glLoadIdentity();
 		gluLookAt(p->x, p->y, p->z, p->x + p->lx,p->y + p->ly,p->z + p->lz, 0.0f, 1.0f, 0.0f);
-		float dir[] = {p->lx,p->ly,p->lz};
-		glLightfv(GL_LIGHT1,GL_SPOT_DIRECTION,dir);
-		glEnable(GL_LIGHT1);
-		//glScalef(0.5,0.5,0.5);
-		//glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 45.0);
-	        //glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.0);
 
 		glPushMatrix();
 			glTranslatef(p->x,p->y+-1,p->z);
@@ -437,6 +428,8 @@ void Level::display()
 			glRotatef(-(p->angle*180/3.14),0,1,0);
 			glTranslatef(0,0,-1);
 			glRotatef(180,0,1,0);
+			//glScalef(0.5,0.5,0.5);
+			glEnable(GL_LIGHT0);	
 			player->DrawColor();
 		glPopMatrix();
 	//	glRotatef(roty, 0, 1, 0);
@@ -563,7 +556,7 @@ void Level::display()
 		//printing text
 		char buffer [5000];
 		
-		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d\npos:\n(%f, %f)" , targets.size()-co, p->points, p->x + p->lx, p->z + p->lz);
+		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
 		unsigned char* y;
 		y = (unsigned char*) buffer;//strcat(x,rem);
 		glColor3f(0,0,0);
@@ -640,8 +633,6 @@ void Level::keyPress(unsigned char key, int x, int y)
 	if(key == 'y')
 	{
 		has_started = true;
-		glDisable(GL_LIGHT0);	
-		//glEnable(GL_LIGHT1);
 	}
 	else if(key == 'r')
 	{
