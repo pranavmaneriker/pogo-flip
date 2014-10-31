@@ -218,7 +218,7 @@ void Game::initWindow(int *argc, char ** argv)
 	level = new Level(level_name);
 	//apparently loading textures here is fine. dahell pipeline?
 	level->initImageTextures();
-	initImage();
+	//initImage();
 	glutMainLoop();
 }
 

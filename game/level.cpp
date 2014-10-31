@@ -54,21 +54,26 @@ void saveScreenShot()
 }
 
 //Global textures
-GLuint tex_2d[1] ;
-
-void initImage()
+GLuint tex_2d[10] ;
+int lastUsed=0;
+int initImage(string path)
 {
-	tex_2d[0] = SOIL_load_OGL_texture
+	tex_2d[lastUsed] = SOIL_load_OGL_texture
 	(
-		"../sprites/images.jpg",
+		path.c_str(),
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_INVERT_Y
 	);
-	if( 0 == tex_2d )
+	if( 0 == tex_2d[lastUsed] )
 	{	
 		printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
 	}
+	    glBindTexture(GL_TEXTURE_2D, texture[0]);
+	    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
+	return tex_2d[lastUsed++];
+	
 }
 
 /**
@@ -237,12 +242,16 @@ class Level{
 	void initImageTextures();
 	void drawTerrain();
 	bool doesCollide();
+	int tex_grass;
+	int tex_wall;
 };
 //If objects with textures need loading
 void
 Level::initImageTextures()
 {
-	//inv->LoadTextures();	
+	//inv->LoadTextures();
+	string path = "../textures/grass.jpg";	
+	tex_wall = initImage(path);
 }
 //Loading level 
 Level::Level(string &l)
@@ -328,42 +337,47 @@ void Level::drawTerrain()
 	float block = (float)BLOCKSIZE;
 	for(int i=-MAPSIZE/2; i<MAPSIZE/2; i+=1)
 	{
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D,tex_grass);
 		for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
 		{
 			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*3;
 			glBegin(GL_QUADS);
-				glColor3f(0,1,0);
-				glVertex3f(i , high, j + block);
-				glVertex3f(i + block, high, j + block);
-				glVertex3f(i + block, high, j);
-				glVertex3f(i, high, j);
+				//glColor3f(0,1,0);
+				glTexCoord2f(0,0);glVertex3f(i , high, j + block);
+				glTexCoord2f(0,1);glVertex3f(i + block, high, j + block);
+				glTexCoord2f(1,1);glVertex3f(i + block, high, j);
+				glTexCoord2f(1,0);glVertex3f(i, high, j);
 			glEnd();
 			glBegin(GL_QUADS);
-				glVertex3f(i, high, j + block);
-				glVertex3f(i + block, high, j + block);
-				glVertex3f(i + block, 0, j + block);
-				glVertex3f(i, 0, j + block);
+				glTexCoord2f(0,0);glVertex3f(i, high, j + block);
+				glTexCoord2f(0,1);glVertex3f(i + block, high, j + block);
+				glTexCoord2f(1,1);glVertex3f(i + block, 0, j + block);
+				glTexCoord2f(1,0);glVertex3f(i, 0, j + block);
 			glEnd();
 			glBegin(GL_QUADS);
-				glVertex3f(i, high, j + block);
-				glVertex3f(i, high, j);
-				glVertex3f(i, 0, j);
-				glVertex3f(i, 0, j + block);
+					glTexCoord2f(0,0);glVertex3f(i, high, j + block);
+					glTexCoord2f(0,1);glVertex3f(i, high, j);
+					glTexCoord2f(1,1);glVertex3f(i, 0, j);
+					glTexCoord2f(1,0);glVertex3f(i, 0, j + block);
 			glEnd();
 			glBegin(GL_QUADS);
-				glVertex3f(i + block, high, j);
-				glVertex3f(i, high, j);
-				glVertex3f(i, 0, j);
-				glVertex3f(i + block, 0, j);
+				glTexCoord2f(0,0);glVertex3f(i + block, high, j);
+				glTexCoord2f(0,1);glVertex3f(i, high, j);
+				glTexCoord2f(1,1);glVertex3f(i, 0, j);
+				glTexCoord2f(1,0);glVertex3f(i + block, 0, j);
 			glEnd();
 			glBegin(GL_QUADS);
-				glVertex3f(i + block, high, j + block);
-				glVertex3f(i + block, high, j);
-				glVertex3f(i + block, 0, j);
-				glVertex3f(i + block, 0, j + block);
+				glTexCoord2f(0,0);glVertex3f(i + block, high, j + block);
+				glTexCoord2f(0,1);glVertex3f(i + block, high, j);
+				glTexCoord2f(1,1);glVertex3f(i + block, 0, j);
+				glTexCoord2f(1,0);glVertex3f(i + block, 0, j + block);
 			glEnd();
 		}
-		cout<<endl;
+		glDisable(GL_TEXTURE_2D);
+	//inv->Load("../rooms/Level_1_test.obj","../rooms/");
+	//inv->Load("../rooms/texture/texture.obj", "../rooms/texture/");
+	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
 	}
 }
 void Level::display()
@@ -372,8 +386,6 @@ void Level::display()
 	glUseProgram(p1);	//blinn-phong shading
 	if(!has_started)
 	{
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, tex_2d[0]);
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
@@ -406,14 +418,12 @@ void Level::display()
 		glRasterPos2i(win.width/2 - 75, win.height/4 +75);
 		glutBitmapString(GLUT_BITMAP_HELVETICA_12, y);
 		
-		glDisable(GL_TEXTURE_2D);
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
 	else
 	{
-		glDisable(GL_TEXTURE_2D);
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
