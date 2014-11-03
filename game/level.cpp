@@ -1,6 +1,10 @@
 #define PI 3.14159265359
+#define MAPSIZE 20
+#define BLOCKSIZE 1
 float rotx,roty,rotz;
+GLuint p1,v1,f1;
 int co = 0;
+
 class Player{
 	public:
 	float angle,ratio;
@@ -25,6 +29,7 @@ class Player{
 
 	int points;
 };
+
 class Target{
 	public:
 	float x,y,z;
@@ -38,6 +43,42 @@ class Target{
 };
 float flip_angle;	
 
+void saveScreenShot()
+{
+	int save_result = SOIL_save_screenshot
+	(
+		"screenshot.bmp",
+		SOIL_SAVE_TYPE_BMP,
+		0, 0, 1024, 768
+	);
+}
+
+//Global textures
+GLuint tex_2d[10] ;
+int lastUsed=0;
+int initImage(string path)
+{
+	tex_2d[lastUsed] = SOIL_load_OGL_texture
+	(
+		path.c_str(),
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_INVERT_Y
+	);
+	if( 0 == tex_2d[lastUsed] )
+	{	
+		printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
+	}
+	    glBindTexture(GL_TEXTURE_2D, tex_2d[lastUsed]);
+	    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
+	return tex_2d[lastUsed++];
+	
+}
+
+/**
+* Handling of in game objects
+**/
 class Model_OBJ{
 	public:
 	Model_OBJ()
@@ -45,6 +86,40 @@ class Model_OBJ{
 	}
 	vector<tinyobj::shape_t> shapes;
 	vector<tinyobj::material_t> materials;
+	map<string,GLuint> texmaps;
+	string mtlpath;
+
+	bool LoadTextures()
+	{
+		tinyobj::material_t mat;
+		string path;
+		for(unsigned int i =0 ; i<shapes.size();++i)
+		{
+			if(!shapes[i].mesh.material_ids.empty())
+			{
+				mat = materials[shapes[i].mesh.material_ids[0]];	//assuming one material per shape
+				if(!mat.diffuse_texname.empty())
+				{
+					cout<<"Loading texture: "<<mat.diffuse_texname<<endl;
+					path = mtlpath+mat.diffuse_texname;
+					GLuint tex = SOIL_load_OGL_texture(
+						path.c_str(),
+						SOIL_LOAD_AUTO,
+						SOIL_CREATE_NEW_ID,
+						SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y
+					);
+					cout<<"Loaded"<<endl;
+					if( 0 == tex )
+					{	
+						printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
+					}
+
+					texmaps[mat.name] = tex;
+				}
+			}
+		}
+		return true;
+	}
 
 	bool Load(const char* filename, const char* basepath = NULL, bool tex = false)
 	{
@@ -54,6 +129,7 @@ class Model_OBJ{
 	    std::cerr << err << std::endl;
 	    return false;
 	  }
+	  mtlpath = basepath;
 	  return true;
 
 	}
@@ -99,7 +175,7 @@ class Model_OBJ{
 				glMaterialfv(GL_FRONT, GL_SHININESS, &materials[mat].shininess);
 			}	
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
-			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
+			if(!mesh.normals.empty())glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
 		//
 		}		
@@ -114,12 +190,26 @@ class Model_OBJ{
 		glEnableClientState(GL_NORMAL_ARRAY);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		tinyobj::mesh_t mesh;
+		int mat;
+		int oldMat = -1;
+
 		for(int i=0;i<shapes.size();++i)
 		{
 			mesh = shapes[i].mesh;
-
+			mat = mesh.material_ids[0];
+			if(mat !=oldMat)
+			{
+				oldMat = mat;
+				glMaterialfv(GL_FRONT, GL_AMBIENT, materials[mat].ambient);
+				glMaterialfv(GL_FRONT, GL_DIFFUSE, materials[mat].diffuse);
+				glMaterialfv(GL_FRONT, GL_SPECULAR, materials[mat].specular);
+				glMaterialfv(GL_FRONT, GL_SHININESS, &materials[mat].shininess);
+			}	
+		//	glBindTexture(GL_TEXTURE_2D, texmaps[materials[mat].name]);	
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
-			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
+			if(!mesh.normals.empty())glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));
+			
+			if(!mesh.texcoords.empty())glTexCoordPointer(3,GL_FLOAT, 0, &mesh.texcoords[0]);
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
 		//
 		}		
@@ -138,11 +228,10 @@ class Level{
 	Model_OBJ *inv;
 	Model_OBJ *player;
 	Model_OBJ *randomFace;
-	
 	int g_rotation;
 	Player *p;
 	float random_angle;
-
+	float map[MAPSIZE][MAPSIZE];
 	public:
 	bool has_started;
 	vector<Target> targets;
@@ -151,9 +240,23 @@ class Level{
 	void keyPress(unsigned char ch, int x, int y);
 	void specialKeyPress(int key, int x, int y);
 	void rotateFace();
+	void initImageTextures();
+	void drawTerrain();
+	bool doesCollide();
+	int tex_grass;
+	int tex_wall;
 };
-
-
+//If objects with textures need loading
+void
+Level::initImageTextures()
+{
+	//inv->LoadTextures();
+	string path = "../textures/grass.jpg";	
+	tex_grass = initImage(path);
+	path = "../textures/wall.jpg";
+	tex_wall = initImage(path);	
+}
+//Loading level 
 Level::Level(string &l)
 {
 	has_started = false;
@@ -164,11 +267,27 @@ Level::Level(string &l)
 	player = new Model_OBJ;
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
-	//inv->Load("../rooms/Level_1_test.obj");
-	inv->Load("../rooms/SnowTerrain/SnowTerrain.obj","../rooms/SnowTerrain/");
+	inv->Load("../rooms/Level_1_test.obj","../rooms/");
+	ifstream levelMap ("../Levels/1/map");
+	for(int i=0;i<MAPSIZE;i++)
+	{
+		for(int j=0;j<MAPSIZE; j++)
+		{
+			if(levelMap.is_open())
+			{
+				levelMap>>map[i][j];
+			}
+			else
+				cout<<"Couldn't open file!";
+		}
+	}
+	levelMap.close();
+	//inv->Load("../rooms/texture/texture.obj", "../rooms/texture/");
+	//inv->Load("../rooms/Small Tropical Island/Small Tropical Island.obj", "../rooms/Small Tropical Island/");
+	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
 	player->Load("../models/Tux.obj", "../models/");
-	randomFace->Load("../models/monkey.obj");
-	room->Load(&cur_level_path[0]);	//&cur_level_path[0]  might avoid warning but is it safe?	
+	randomFace->Load("../models/monkey.obj","../models/");
+	room->Load(&cur_level_path[0],"../rooms/");	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
 	p = new Player;
 	p->angle=0;
@@ -182,14 +301,103 @@ Level::Level(string &l)
 	targets.push_back(Target(-2, 0.2 , 3, 50));
 	
 }
+
+bool Level::doesCollide()
+{
+	float del = BLOCKSIZE/2;
+	float x = p->x+p->lx - del;
+	float z = p->z+p->lz - del;
+	int i1 = floor(x/BLOCKSIZE) + MAPSIZE/2;
+	int j1 = floor(z/BLOCKSIZE) + MAPSIZE/2;
+	x += 2*del;
+	z += 2*del;
+	int i2 = floor(x/BLOCKSIZE) + MAPSIZE/2;
+	int j2 = floor(z/BLOCKSIZE) + MAPSIZE/2;
+	if(i1<=MAPSIZE && j1<=MAPSIZE && map[i1][j1]==0
+		&& i1<=MAPSIZE && j2<=MAPSIZE && map[i1][j2]==0
+		&& i2<=MAPSIZE && j1<=MAPSIZE && map[i2][j1]==0
+		&& i2<=MAPSIZE && j2<=MAPSIZE && map[i2][j2]==0
+		&& i1>=0 && i2>=0 && j1>=0 && j2>=0)
+		return false; //does not collide
+	else
+		return true; //does collide
+}
+
+
 void Level::rotateFace()
 {
 	random_angle +=3;
 	if(random_angle >=360) random_angle-=360;
 }
+/**
+* Calculate normals with cross product
+**/
 
+
+
+/**
+* Level scene drawing function
+* Contains welcome screen also
+**/
+void Level::drawTerrain()
+{
+	float high;
+	float block = (float)BLOCKSIZE;
+	for(int i=-MAPSIZE/2; i<MAPSIZE/2; i+=1)
+	{
+		glEnable(GL_TEXTURE_2D);
+		glColor3f(1,1,1);
+		for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
+		{
+			glBindTexture(GL_TEXTURE_2D,tex_grass);
+			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*3;
+			glBegin(GL_QUADS);
+				glNormal3f(0,-1,0);
+				glTexCoord2f(0,0);glVertex3f(i , high, j + block);
+				glTexCoord2f(0,1);glVertex3f(i + block, high, j + block);
+				glTexCoord2f(1,1);glVertex3f(i + block, high, j);
+				glTexCoord2f(1,0);glVertex3f(i, high, j);
+			glEnd();
+			glBindTexture(GL_TEXTURE_2D,tex_wall);
+			glBegin(GL_QUADS);
+				glNormal3f(0,0,1);
+				glTexCoord2f(1,0);glVertex3f(i, high, j + block);
+				glTexCoord2f(0,0);glVertex3f(i + block, high, j + block);
+				glTexCoord2f(0,1);glVertex3f(i + block, 0, j + block);
+				glTexCoord2f(1,1);glVertex3f(i, 0, j + block);
+			glEnd();
+			glBegin(GL_QUADS);
+					glNormal3f(1,0,0);
+					glTexCoord2f(1,0);glVertex3f(i, high, j + block);
+					glTexCoord2f(0,0);glVertex3f(i, high, j);
+					glTexCoord2f(0,1);glVertex3f(i, 0, j);
+					glTexCoord2f(1,1);glVertex3f(i, 0, j + block);
+			glEnd();
+			glBegin(GL_QUADS);
+				glNormal3f(0,0,1);
+				glTexCoord2f(1,0);glVertex3f(i + block, high, j);
+				glTexCoord2f(0,0);glVertex3f(i, high, j);
+				glTexCoord2f(0,1);glVertex3f(i, 0, j);
+				glTexCoord2f(1,1);glVertex3f(i + block, 0, j);
+			glEnd();
+			glBegin(GL_QUADS);
+				glNormal3f(1,0,0);
+				glTexCoord2f(0,0);glVertex3f(i + block, high, j + block);
+				glTexCoord2f(0,1);glVertex3f(i + block, high, j);
+				glTexCoord2f(1,1);glVertex3f(i + block, 0, j);
+				glTexCoord2f(1,0);glVertex3f(i + block, 0, j + block);
+			glEnd();
+		}
+		glDisable(GL_TEXTURE_2D);
+	//inv->Load("../rooms/Level_1_test.obj","../rooms/");
+	//inv->Load("../rooms/texture/texture.obj", "../rooms/texture/");
+	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
+	}
+}
 void Level::display()
 {
+
+	glUseProgram(p1);	//blinn-phong shading
 	if(!has_started)
 	{
 		glClearColor(0.7215,0.8627,0.9490,1);
@@ -234,9 +442,18 @@ void Level::display()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
+		
 		glLoadIdentity();
+		float pos[]={0,1,1};
+		glLightfv(GL_LIGHT0,GL_POSITION,pos);
+		glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 100.0);
+    		glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0);
+		//float dir[]={p->lx,p->ly,p->lz};
+		float dir[]={0,0,-1};
+		glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,dir);
+		glEnable(GL_LIGHT0);
 		gluLookAt(p->x, p->y, p->z, p->x + p->lx,p->y + p->ly,p->z + p->lz, 0.0f, 1.0f, 0.0f);
+		
 
 		glPushMatrix();
 			glTranslatef(p->x,p->y+-1,p->z);
@@ -244,31 +461,23 @@ void Level::display()
 			glRotatef(-(p->angle*180/3.14),0,1,0);
 			glTranslatef(0,0,-1);
 			glRotatef(180,0,1,0);
-			//glScalef(0.5,0.5,0.5);	
+			//glScalef(0.5,0.5,0.5);
 			player->DrawColor();
 		glPopMatrix();
 	//	glRotatef(roty, 0, 1, 0);
 	//	glRotatef(rotx, 1, 0, 0);
 
 
-	//	glPushMatrix();
-	//		glTranslatef(0,0.02,0);
-	//		player->DrawColor();	
-	//	glPopMatrix();
 		glRotatef(flip_angle,1,0,0);
-	
-		room->DrawColor();
-	//	glPushMatrix();
-	//		glRotatef(-roty+180, 0, 1, 0);
-	//		glRotatef(-rotx, 1, 0, 0);
-	//		glTranslatef(p->curx,p->cury,p->curz);
-	//		player->DrawColor();
-	//	glPopMatrix();
+		
 		glPushMatrix();
-	//		glTranslatef(10,2,1);
-	//		glRotatef(random_angle, 0,1,0);
-	//		glScalef(0.5,0.5,0.5);
-	//		randomFace->Draw();
+			glColorMaterial(GL_FRONT, GL_DIFFUSE);
+			//glEnable(GL_COLOR_MATERIAL);
+			glDisable(GL_LIGHTING);
+			drawTerrain();
+
+			//room->DrawColor();
+			glEnable(GL_LIGHTING);
 		glPopMatrix();
 		for(int i = 0; i < targets.size() ; i++)
 		{
@@ -278,16 +487,20 @@ void Level::display()
 					glTranslatef(targets[i].x,targets[i].y,targets[i].z);
 					glRotatef(random_angle, 0,1,0);
 					glScalef(0.25,0.25,0.25);
-					randomFace->Draw();
+					randomFace->DrawColor();
 				glPopMatrix();
 			}
 		}
 		glTranslatef(0, -0.02,0);
 		glRotatef(180,1,0,0);
 
-		inv->Draw();
-	
-	
+		glPushMatrix();
+			//glTranslatef(0,-50,0);
+			glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
+			//inv->DrawColor();
+			//inv->DrawTexture();
+			glDisable(GL_TEXTURE_2D);
+		glPopMatrix();
 	
 		//HUD (Hud dabangg dabangg)
 		glMatrixMode(GL_PROJECTION);
@@ -325,20 +538,42 @@ void Level::display()
 		int map_ox = hud_width/2;
 		int map_oy = win.height - hud_width/2;
 		
-		glColor3f(0.0f, 1.0f, 0.0f);
+		
+		for(int i=-MAPSIZE/2; i<MAPSIZE/2; i+=1)
+		{
+			for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
+			{
+				float high = map[i+MAPSIZE/2][j+MAPSIZE/2];
+				float le, bo;
+					le = map_ox + j*5;
+					bo = map_oy + i*5;
+				glBegin(GL_QUADS);
+					if(high>0)
+						glColor3f(0.8, 0.411, 0.12);
+					else if(high<0)
+						glColor3f(0,0,0);
+					else
+						glColor3f(0,1,0);
+					glVertex2f(le, bo);
+					glVertex2f(le, bo - 5);
+					glVertex2f(le + 5, bo - 5);
+					glVertex2f(le + 5, bo);
+				glEnd();
+			}
+		}
+		glColor3f(0,0,0);
 		glPointSize(1);
 		glBegin(GL_LINES);
 		    glVertex3f(map_ox + p->z*5 , map_oy + p->x*5,0);
 		    glVertex3f(map_ox + p->z*5 +p->lz*20, map_oy + p->x*5 + p->lx*20,0);
 		glEnd();
-		
 		int point_size = 4 + abs(6 * sin(random_angle*PI/180));
 		glPointSize(point_size);
 		
 		glBegin(GL_POINTS);
 			//tux
 			glColor3f(1.0f, 0.0f, 0.0f);
-			glVertex3f(map_ox + p->z*5 , map_oy + p->x*5,0);
+			glVertex3f(map_ox + p->z*5 + p->lz*5, map_oy + p->x*5 + p->lx*5,0);
 			glColor3f(1,1,0);
 			//targets
 			for(int i=0;i<targets.size();i++)
@@ -353,7 +588,7 @@ void Level::display()
 		//printing text
 		char buffer [5000];
 		
-		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse w to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
+		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
 		unsigned char* y;
 		y = (unsigned char*) buffer;//strcat(x,rem);
 		glColor3f(0,0,0);
@@ -366,10 +601,14 @@ void Level::display()
 	}
 	inv->DrawTexture();
 	glutSwapBuffers();	
-	glFlush(); 
+	//glFlush(); 
+	alListener3f(AL_POSITION,p->x,p->y,p->z);
 	//cout<<rotx<<" "<<roty<<" "<<rotz<<" "<<p->x<<" "<<p->y<<" "<<p->z<<endl; 
 }
 
+/**
+* Idle function: Rotate monkey head.
+**/
 void rotate(int new_angle)
 {
 	flip_angle+=5;
@@ -383,6 +622,9 @@ void rotate(int new_angle)
 	}
 }
 
+/**
+* Key events handling
+**/
 void Level::keyPress(unsigned char key, int x, int y)
 {
 	//normal key press events
@@ -391,11 +633,19 @@ void Level::keyPress(unsigned char key, int x, int y)
 		if( key == 'w')
 		{
 			p->move(1);
+			if(doesCollide())
+			{
+				p->move(-1);
+			}
 			//p->z+=0.3;
 		}
 		else if( key == 's')
 		{
 			p->move(-1);
+			if(doesCollide())
+			{
+				p->move(1);
+			}
 			//p->z-=0.3;
 		}
 		else if(key == 'a')
@@ -417,9 +667,9 @@ void Level::keyPress(unsigned char key, int x, int y)
 	{
 		has_started = true;
 	}
-	else if(key =='r')
+	else if(key == 'r')
 	{
-		takeScreenShot();
+		saveScreenShot();
 	}
 ////////else if(key == 'i')
 ////////{
@@ -453,6 +703,10 @@ void Level::keyPress(unsigned char key, int x, int y)
 	}
 	glutPostRedisplay();
 }
+
+/**
+* Special key events handling. Currently disabled
+**/
 
 void Level::specialKeyPress(int key,int x,int y)
 {
