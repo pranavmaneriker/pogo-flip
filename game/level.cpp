@@ -328,6 +328,11 @@ void Level::rotateFace()
 	random_angle +=3;
 	if(random_angle >=360) random_angle-=360;
 }
+/**
+* Calculate normals with cross product
+**/
+
+
 
 /**
 * Level scene drawing function
@@ -340,12 +345,13 @@ void Level::drawTerrain()
 	for(int i=-MAPSIZE/2; i<MAPSIZE/2; i+=1)
 	{
 		glEnable(GL_TEXTURE_2D);
+		glColor3f(1,1,1);
 		for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
 		{
 			glBindTexture(GL_TEXTURE_2D,tex_grass);
 			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*3;
 			glBegin(GL_QUADS);
-				//glColor3f(0,1,0);
+				glNormal3f(0,-1,0);
 				glTexCoord2f(0,0);glVertex3f(i , high, j + block);
 				glTexCoord2f(0,1);glVertex3f(i + block, high, j + block);
 				glTexCoord2f(1,1);glVertex3f(i + block, high, j);
@@ -353,24 +359,28 @@ void Level::drawTerrain()
 			glEnd();
 			glBindTexture(GL_TEXTURE_2D,tex_wall);
 			glBegin(GL_QUADS);
-				glTexCoord2f(0,0);glVertex3f(i, high, j + block);
-				glTexCoord2f(0,1);glVertex3f(i + block, high, j + block);
-				glTexCoord2f(1,1);glVertex3f(i + block, 0, j + block);
-				glTexCoord2f(1,0);glVertex3f(i, 0, j + block);
+				glNormal3f(0,0,1);
+				glTexCoord2f(1,0);glVertex3f(i, high, j + block);
+				glTexCoord2f(0,0);glVertex3f(i + block, high, j + block);
+				glTexCoord2f(0,1);glVertex3f(i + block, 0, j + block);
+				glTexCoord2f(1,1);glVertex3f(i, 0, j + block);
 			glEnd();
 			glBegin(GL_QUADS);
-					glTexCoord2f(0,0);glVertex3f(i, high, j + block);
-					glTexCoord2f(0,1);glVertex3f(i, high, j);
-					glTexCoord2f(1,1);glVertex3f(i, 0, j);
-					glTexCoord2f(1,0);glVertex3f(i, 0, j + block);
+					glNormal3f(1,0,0);
+					glTexCoord2f(1,0);glVertex3f(i, high, j + block);
+					glTexCoord2f(0,0);glVertex3f(i, high, j);
+					glTexCoord2f(0,1);glVertex3f(i, 0, j);
+					glTexCoord2f(1,1);glVertex3f(i, 0, j + block);
 			glEnd();
 			glBegin(GL_QUADS);
-				glTexCoord2f(0,0);glVertex3f(i + block, high, j);
-				glTexCoord2f(0,1);glVertex3f(i, high, j);
-				glTexCoord2f(1,1);glVertex3f(i, 0, j);
-				glTexCoord2f(1,0);glVertex3f(i + block, 0, j);
+				glNormal3f(0,0,1);
+				glTexCoord2f(1,0);glVertex3f(i + block, high, j);
+				glTexCoord2f(0,0);glVertex3f(i, high, j);
+				glTexCoord2f(0,1);glVertex3f(i, 0, j);
+				glTexCoord2f(1,1);glVertex3f(i + block, 0, j);
 			glEnd();
 			glBegin(GL_QUADS);
+				glNormal3f(1,0,0);
 				glTexCoord2f(0,0);glVertex3f(i + block, high, j + block);
 				glTexCoord2f(0,1);glVertex3f(i + block, high, j);
 				glTexCoord2f(1,1);glVertex3f(i + block, 0, j);
@@ -433,7 +443,16 @@ void Level::display()
 		glEnable(GL_LIGHTING);
 		
 		glLoadIdentity();
+		float pos[]={0,1,1};
+		glLightfv(GL_LIGHT0,GL_POSITION,pos);
+		glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 100.0);
+    		glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0);
+		//float dir[]={p->lx,p->ly,p->lz};
+		float dir[]={0,0,-1};
+		glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,dir);
+		glEnable(GL_LIGHT0);
 		gluLookAt(p->x, p->y, p->z, p->x + p->lx,p->y + p->ly,p->z + p->lz, 0.0f, 1.0f, 0.0f);
+		
 
 		glPushMatrix();
 			glTranslatef(p->x,p->y+-1,p->z);
@@ -441,7 +460,6 @@ void Level::display()
 			glRotatef(-(p->angle*180/3.14),0,1,0);
 			glTranslatef(0,0,-1);
 			glRotatef(180,0,1,0);
-			glEnable(GL_LIGHT0);
 			//glScalef(0.5,0.5,0.5);
 			player->DrawColor();
 		glPopMatrix();
@@ -453,12 +471,12 @@ void Level::display()
 		
 		glPushMatrix();
 			glColorMaterial(GL_FRONT, GL_DIFFUSE);
-			glEnable(GL_COLOR_MATERIAL);
-			//glDisable(GL_LIGHTING);
+			//glEnable(GL_COLOR_MATERIAL);
+			glDisable(GL_LIGHTING);
 			drawTerrain();
 
 			//room->DrawColor();
-			//glEnable(GL_LIGHTING);
+			glEnable(GL_LIGHTING);
 		glPopMatrix();
 		for(int i = 0; i < targets.size() ; i++)
 		{

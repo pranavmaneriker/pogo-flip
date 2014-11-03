@@ -172,18 +172,24 @@ void Game::initGL()
         gluPerspective(45,640.0/480.0,1.0,1000.0);
         glMatrixMode(GL_MODELVIEW);
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_LIGHTING);
+	
+	 //Add ambient light
+   	GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color(0.2, 0.2, 0.2)
+   	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
+	glLightModelf(GL_LIGHT_MODEL_COLOR_CONTROL,GL_SEPARATE_SPECULAR_COLOR);
+
+        float pos[]={0.0,1.0,0.0,1.0};
+        glLightfv(GL_LIGHT0,GL_POSITION,pos);
         glEnable(GL_LIGHT0);
         float col[]={1.0,1.0,1.0,1.0};
+        glEnable(GL_LIGHTING);
         glLightfv(GL_LIGHT0, GL_DIFFUSE, col);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, col);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, col);
 	//draw
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
-        float pos[]={0.0,1.0,0.0,1.0};
-        glLightfv(GL_LIGHT0,GL_POSITION,pos);
-	
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF,100.0f);
 	//blinn-phong
 	glewInit();
 	setShaders();
