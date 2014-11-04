@@ -266,7 +266,7 @@ Level::Level(string &l)
 	player = new Model_OBJ;
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
-	inv->Load("../rooms/Level_1_test.obj","../rooms/");
+	//inv->Load("../rooms/Level_1_test.obj","../rooms/");
 	ifstream levelMap ("../Levels/1/map");
 	for(int i=0;i<MAPSIZE;i++)
 	{
@@ -286,7 +286,7 @@ Level::Level(string &l)
 	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
 	player->Load("../models/Tux.obj", "../models/");
 	randomFace->Load("../models/monkey.obj","../models/");
-	room->Load(&cur_level_path[0],"../rooms/");	//&cur_level_path[0]  might avoid warning but is it safe?	
+	//room->Load(&cur_level_path[0],"../rooms/");	//&cur_level_path[0]  might avoid warning but is it safe?	
 	g_rotation = 0;
 	p = new Player;
 	p->angle=0;
