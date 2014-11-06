@@ -306,7 +306,7 @@ bool Level::doesCollide()
 	float del = BLOCKSIZE/2;
 	float x = p->x+p->lx - del;
 	float z = p->z+p->lz - del;
-	int i1 = floor(x/BLOCKSIZE) + MAPSIZE/2;
+	int i1 = floor(x/BLOCKSIZE) + MAPSIZE/2 +1;
 	int j1 = floor(z/BLOCKSIZE) + MAPSIZE/2;
 	x += 2*del;
 	z += 2*del;
@@ -349,6 +349,7 @@ void Level::drawTerrain()
 		for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
 		{
 			glBindTexture(GL_TEXTURE_2D,tex_grass);
+			
 			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*3;
 			glBegin(GL_QUADS);
 				glNormal3f(0,-1,0);
@@ -458,10 +459,10 @@ void Level::display()
 			glTranslatef(p->x,p->y+-1,p->z);
 			glTranslatef(p->lx,p->ly,p->lz);
 			glRotatef(-(p->angle*180/3.14),0,1,0);
-			glTranslatef(0,0,-1);
+			glTranslatef(0,0,-0.5);
 			glRotatef(180,0,1,0);
 			//glScalef(0.5,0.5,0.5);
-			player->DrawColor();
+			//player->DrawColor();
 		glPopMatrix();
 	//	glRotatef(roty, 0, 1, 0);
 	//	glRotatef(rotx, 1, 0, 0);
@@ -649,11 +650,19 @@ void Level::keyPress(unsigned char key, int x, int y)
 		else if(key == 'a')
 		{
 			p->angle -= 0.1f;p->orient(p->angle);
+			if(doesCollide())
+			{
+				p->angle += 0.1f;p->orient(p->angle);
+			}
 			//p->x+=0.3;
 		}
 		else if(key == 'd')
 		{
 			p->angle +=0.1f;p->orient(p->angle);
+			if(doesCollide())
+			{
+				p->angle -=0.1f;p->orient(p->angle);
+			}
 		//	p->x-=0.3;
 		}
 		else if(key == 'q')
