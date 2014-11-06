@@ -428,7 +428,7 @@ void Level::drawTransition()
 	glColor3f(0,0,0);
 	glRasterPos2i(win.width/2 - 150, win.height/4);
 	glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, y);
-	x = "Press 'y' to continue";
+	x = "You have completed this level\nPress Y to go to the next level";
 	y = (unsigned char*) x;
 	glColor3f(0,0,0);
 	glRasterPos2i(win.width/2 - 75, win.height/4 +75);
@@ -440,6 +440,7 @@ void Level::drawTransition()
 }
 void Level::nextLevel()
 {
+	co = 0;
 	is_transitioning = true;
 	current_level++;
 	flip_angle = 0;
@@ -601,6 +602,7 @@ void Level::display()
 		    glVertex2f(0.0, win.height);
 		glEnd();
 		
+		
 		//printing text
 		char buffer [5000];
 		
@@ -611,6 +613,43 @@ void Level::display()
 		glRasterPos2i(hud_pad, 100);
 		glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
 		
+		
+		int bar_width = 500;
+		int bar_height = 50;
+		int bar_pad = 10;
+		float sh=3;
+		hud_pad = 0;
+		glBegin(GL_QUADS);
+		    glColor3f(0,0,0.05);
+		    glVertex2f(win.width-hud_pad-bar_width+sh, hud_pad+sh);
+		    glVertex2f(win.width-hud_pad+sh, hud_pad+sh);
+		    glVertex2f(win.width-hud_pad+sh, hud_pad+bar_height+sh);
+		    glVertex2f(win.width-hud_pad-bar_width+sh, hud_pad+bar_height+sh);
+		glEnd();
+		glBegin(GL_QUADS);
+		    glColor3f(0,0,0.6);
+		    glVertex2f(win.width-hud_pad-bar_width, hud_pad);
+		    glVertex2f(win.width-hud_pad, hud_pad);
+		    glVertex2f(win.width-hud_pad, hud_pad+bar_height);
+		    glVertex2f(win.width-hud_pad-bar_width, hud_pad+bar_height);
+		glEnd();
+		glBegin(GL_QUADS);
+		    glColor3f(0,0.5,1);
+		    glVertex2f(win.width-hud_pad-bar_width+bar_pad, hud_pad+bar_pad);
+		    glVertex2f(win.width-hud_pad-bar_pad, hud_pad+bar_pad);
+		    glVertex2f(win.width-hud_pad-bar_pad, hud_pad+bar_height-bar_pad);
+		    glVertex2f(win.width-hud_pad-bar_width+bar_pad, hud_pad+bar_height-bar_pad);
+		glEnd();
+
+		int total_targets=3;
+		float bar_length = co*(bar_width-2*bar_pad)/total_targets;
+		glBegin(GL_QUADS);
+		    glColor3f(1,0.4,0);
+		    glVertex2f(win.width-hud_pad-bar_width+bar_pad, hud_pad+bar_pad);
+		    glVertex2f(win.width-hud_pad+bar_pad+bar_length-bar_width, hud_pad+bar_pad);
+		    glVertex2f(win.width-hud_pad+bar_pad+bar_length-bar_width, hud_pad+bar_height-bar_pad);
+		    glVertex2f(win.width-hud_pad-bar_width+bar_pad, hud_pad+bar_height-bar_pad);
+		glEnd();
 		/*
 		glBegin(GL_QUADS);
 		    glColor3f(0, 1, 0);
@@ -713,6 +752,10 @@ void Level::display()
 	//glFlush(); 
 	alListener3f(AL_POSITION,p->x,p->y,p->z);
 	//cout<<rotx<<" "<<roty<<" "<<rotz<<" "<<p->x<<" "<<p->y<<" "<<p->z<<endl; 
+	
+	
+	if(co == 3)
+		nextLevel();
 }
 
 /**
