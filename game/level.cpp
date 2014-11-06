@@ -388,10 +388,10 @@ void Level::drawTerrain()
 			glEnd();
 			glBegin(GL_QUADS);
 				glNormal3f(1,0,0);
-				glTexCoord2f(0,0);glVertex3f(i + block, high, j + block);
-				glTexCoord2f(0,1);glVertex3f(i + block, high, j);
-				glTexCoord2f(1,1);glVertex3f(i + block, 0, j);
-				glTexCoord2f(1,0);glVertex3f(i + block, 0, j + block);
+				glTexCoord2f(1,0);glVertex3f(i + block, high, j + block);
+				glTexCoord2f(0,0);glVertex3f(i + block, high, j);
+				glTexCoord2f(0,1);glVertex3f(i + block, 0, j);
+				glTexCoord2f(1,1);glVertex3f(i + block, 0, j + block);
 			glEnd();
 		}
 		glDisable(GL_TEXTURE_2D);
