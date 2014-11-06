@@ -223,6 +223,7 @@ class Level{
 	private:
 	string cur_level_path;
 	string cur_level;
+	int current_level;
 	Model_OBJ *room;
 	Model_OBJ *inv;
 	Model_OBJ *player;
@@ -233,13 +234,16 @@ class Level{
 	float map[MAPSIZE][MAPSIZE];
 	public:
 	bool has_started;
+	bool is_transitioning;
 	vector<Target> targets;
 	Level(string &l);
 	void display();
 	void keyPress(unsigned char ch, int x, int y);
 	void specialKeyPress(int key, int x, int y);
 	void rotateFace();
+	void nextLevel();
 	void initImageTextures();
+	void drawTransition();
 	void drawTerrain();
 	bool doesCollide();
 	int tex_grass;
@@ -259,8 +263,10 @@ Level::initImageTextures()
 Level::Level(string &l)
 {
 	has_started = false;
+	is_transitioning = false;
 	flip_angle = 0;
 	cur_level = l;
+	current_level = 1;
 	cur_level_path = "../rooms/" + l +"_alt.obj";
 	inv = new Model_OBJ;
 	player = new Model_OBJ;
@@ -394,11 +400,81 @@ void Level::drawTerrain()
 	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
 	}
 }
+void Level::drawTransition()
+{
+	glClearColor(0.7215,0.8627,0.9490,1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glLoadIdentity();
+	glTranslatef(0, -1, -3);
+	glRotatef(random_angle, 0, 1, 0);
+	player->DrawColor();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0.0, win.width, win.height, 0.0, -1.0, 10.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHT0);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	const char* x = "                Pogo Flip\n_______________________";
+	unsigned char* y;
+	y = (unsigned char*) x;
+	glColor3f(0,0,0);
+	glRasterPos2i(win.width/2 - 150, win.height/4);
+	glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, y);
+	x = "Press 'y' to continue";
+	y = (unsigned char*) x;
+	glColor3f(0,0,0);
+	glRasterPos2i(win.width/2 - 75, win.height/4 +75);
+	glutBitmapString(GLUT_BITMAP_HELVETICA_12, y);
+	
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+}
+void Level::nextLevel()
+{
+	is_transitioning = true;
+	current_level++;
+	flip_angle = 0;
+	stringstream ss;
+	ss << current_level;
+	string str = ss.str();
+	string map_path = "../Levels/"+str+"/map";
+	ifstream levelMap (map_path.c_str());
+	for(int i=0;i<MAPSIZE;i++)
+	{
+		for(int j=0;j<MAPSIZE; j++)
+		{
+			if(levelMap.is_open())
+			{
+				levelMap>>map[i][j];
+			}
+			else
+				cout<<"Couldn't open file!";
+		}
+	}
+	levelMap.close();
+	g_rotation = 0;
+	p->angle=0;
+	p->x = 0; p->y = 1; p->z = 0; p->points =0;
+	roty=54;
+}
 void Level::display()
 {
 
 	glUseProgram(p1);	//blinn-phong shading
-	if(!has_started)
+	if(is_transitioning)
+	{
+		drawTransition();
+	}
+	else if(!has_started)
 	{
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -525,66 +601,6 @@ void Level::display()
 		    glVertex2f(0.0, win.height);
 		glEnd();
 		
-		glBegin(GL_QUADS);
-		    glColor3f(0, 0, 0.5);
-		    glVertex2f(hud_pad, win.height+hud_pad-hud_width);
-		    glVertex2f(hud_width - hud_pad, win.height+hud_pad-hud_width);
-		    glVertex2f(hud_width - hud_pad, win.height-hud_pad);
-		    glVertex2f(hud_pad, win.height - hud_pad);
-		glEnd();
-		glDisable(GL_PROGRAM_POINT_SIZE);
-		
-		//lookat arrow
-		int map_ox = hud_width/2;
-		int map_oy = win.height - hud_width/2;
-		
-		
-		for(int i=-MAPSIZE/2; i<MAPSIZE/2; i+=1)
-		{
-			for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
-			{
-				float high = map[i+MAPSIZE/2][j+MAPSIZE/2];
-				float le, bo;
-					le = map_ox + j*5;
-					bo = map_oy + i*5;
-				glBegin(GL_QUADS);
-					if(high>0)
-						glColor3f(0.8, 0.411, 0.12);
-					else if(high<0)
-						glColor3f(0,0,0);
-					else
-						glColor3f(0,1,0);
-					glVertex2f(le, bo);
-					glVertex2f(le, bo - 5);
-					glVertex2f(le + 5, bo - 5);
-					glVertex2f(le + 5, bo);
-				glEnd();
-			}
-		}
-		glColor3f(0,0,0);
-		glPointSize(1);
-		glBegin(GL_LINES);
-		    glVertex3f(map_ox + p->z*5 , map_oy + p->x*5,0);
-		    glVertex3f(map_ox + p->z*5 +p->lz*20, map_oy + p->x*5 + p->lx*20,0);
-		glEnd();
-		int point_size = 4 + abs(6 * sin(random_angle*PI/180));
-		glPointSize(point_size);
-		
-		glBegin(GL_POINTS);
-			//tux
-			glColor3f(1.0f, 0.0f, 0.0f);
-			glVertex3f(map_ox + p->z*5 + p->lz*5, map_oy + p->x*5 + p->lx*5,0);
-			glColor3f(1,1,0);
-			//targets
-			for(int i=0;i<targets.size();i++)
-			{
-				if(targets[i].reached!=true)
-				{
-					glVertex3f(map_ox + targets[i].z*5 , map_oy + targets[i].x*5,0);
-				}
-			}
-		glEnd();
-		
 		//printing text
 		char buffer [5000];
 		
@@ -594,6 +610,100 @@ void Level::display()
 		glColor3f(0,0,0);
 		glRasterPos2i(hud_pad, 100);
 		glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
+		
+		/*
+		glBegin(GL_QUADS);
+		    glColor3f(0, 1, 0);
+		    glVertex2f(hud_pad, win.height+hud_pad-hud_width);
+		    glVertex2f(hud_width - hud_pad, win.height+hud_pad-hud_width);
+		    glVertex2f(hud_width - hud_pad, win.height-hud_pad);
+		    glVertex2f(hud_pad, win.height - hud_pad);
+		glEnd();
+		*/
+		glDisable(GL_PROGRAM_POINT_SIZE);
+		
+		
+		//lookat arrow
+		int map_ox = hud_width/2;
+		int map_oy = win.height - hud_width/2;
+		//glRotatef(random_angle, 0, 0, 1);
+		//glTranslatef(map_ox, map_oy, 0);
+		
+		double radius = 150;   
+		glColor3f(0, 0.8, 0);
+		double twicePi = 2.0 * 3.142;
+		glBegin(GL_TRIANGLE_FAN); //BEGIN CIRCLE
+		glVertex2f(map_ox, map_oy); // center of circle
+		for (int i = 0; i <= 40; i++)   {
+			glVertex2f ( (map_ox + (radius * cos(i * twicePi / 40))), (map_oy + (radius * sin(i * twicePi / 40))) );
+		}
+		glEnd();
+		
+		radius = 130;   
+		glColor3f(0, 1, 0);
+		glBegin(GL_TRIANGLE_FAN); //BEGIN CIRCLE
+		glVertex2f(map_ox, map_oy); // center of circle
+		for (int i = 0; i <= 40; i++)   {
+			glVertex2f ( (map_ox + (radius * cos(i * twicePi / 40))), (map_oy + (radius * sin(i * twicePi / 40))) );
+		}
+		glEnd();
+		
+		//the map
+		
+		float face_angle = -atan(p->lz/p->lx)*180/PI + 180;
+		if((p->lz>=0 && p->lx<=0)||(p->lz<=0 && p->lx<=0))face_angle+=180;
+		
+		
+		float unit = 7;
+		glTranslatef(map_ox, map_oy, 0);
+		glRotatef(face_angle, 0, 0, 1);
+		map_ox=map_oy=0;
+		for(int i=-MAPSIZE/2; i<MAPSIZE/2; i+=1)
+		{
+			for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
+			{
+				float high = map[i+MAPSIZE/2][j+MAPSIZE/2];
+				float le, bo;
+					le = map_ox - j*unit;
+					bo = map_oy + i*unit;
+				glBegin(GL_QUADS);
+					if(high>0)
+						glColor3f(0.8, 0.411, 0.12);
+					else if(high<0)
+						glColor3f(0,0,0);
+					else
+						glColor3f(0,1,0);
+					glVertex2f(le, bo);
+					glVertex2f(le, bo - unit);
+					glVertex2f(le - unit, bo - unit);
+					glVertex2f(le - unit, bo);
+				glEnd();
+			}
+		}
+		glColor3f(0,0,0);
+		glPointSize(1);
+		glBegin(GL_LINES);
+		    glVertex3f(map_ox - p->z*unit -p->lz*unit, map_oy + p->x*unit + p->lx*unit,0);
+		    glVertex3f(map_ox - p->z*unit -p->lz*4*unit, map_oy + p->x*unit + p->lx*4*unit,0);
+		glEnd();
+		int point_size = unit + abs(6 * sin(random_angle*PI/180));
+		glPointSize(point_size);
+		
+		glBegin(GL_POINTS);
+			//tux
+			glColor3f(1.0f, 0.0f, 0.0f);
+			glVertex3f(map_ox - p->z*unit - p->lz*unit , map_oy + p->x*unit + p->lx*unit ,0);
+			glColor3f(1,1,0);
+			//targets
+			for(int i=0;i<targets.size();i++)
+			{
+				if(targets[i].reached!=true)
+				{
+					glVertex3f(map_ox - targets[i].z*unit , map_oy + targets[i].x*unit,0);
+				}
+			}
+		glEnd();
+		
 		// Making sure we can render 3d again
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
@@ -629,7 +739,7 @@ void Level::keyPress(unsigned char key, int x, int y)
 	//normal key press events
 	if(has_started)
 	{
-		if( key == 'w')
+		if( key == 'w' || key == 'W')
 		{
 			p->move(1);
 			if(doesCollide())
@@ -638,7 +748,7 @@ void Level::keyPress(unsigned char key, int x, int y)
 			}
 			//p->z+=0.3;
 		}
-		else if( key == 's')
+		else if( key == 's' || key == 'S')
 		{
 			p->move(-1);
 			if(doesCollide())
@@ -647,7 +757,7 @@ void Level::keyPress(unsigned char key, int x, int y)
 			}
 			//p->z-=0.3;
 		}
-		else if(key == 'a')
+		else if(key == 'a' || key == 'A')
 		{
 			p->angle -= 0.1f;p->orient(p->angle);
 			if(doesCollide())
@@ -656,7 +766,7 @@ void Level::keyPress(unsigned char key, int x, int y)
 			}
 			//p->x+=0.3;
 		}
-		else if(key == 'd')
+		else if(key == 'd' || key == 'D')
 		{
 			p->angle +=0.1f;p->orient(p->angle);
 			if(doesCollide())
@@ -665,14 +775,19 @@ void Level::keyPress(unsigned char key, int x, int y)
 			}
 		//	p->x-=0.3;
 		}
-		else if(key == 'q')
+		else if(key == 'q' || key == 'Q')
 		{
 			glutTimerFunc(100, rotate , 1 );
+		}
+		else if(key == 'o')
+		{
+			nextLevel();
 		}
 	}
 	if(key == 'y')
 	{
 		has_started = true;
+		is_transitioning = false;
 	}
 	else if(key == 'r')
 	{
