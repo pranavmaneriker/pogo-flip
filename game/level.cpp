@@ -1,10 +1,14 @@
 #define PI 3.14159265359
 #define MAPSIZE 20
 #define BLOCKSIZE 1
+
+#define MODE_FIRST_PERSON 1
+#define MODE_THIRD_PERSON 2
+
 float rotx,roty,rotz;
 GLuint p1,v1,f1;
 int co = 0;
-
+int mode = 2;
 class Player{
 	public:
 	float angle,ratio;
@@ -16,7 +20,7 @@ class Player{
 	  lx = sin(ang);
 	  lz = -cos(ang);
 	  glLoadIdentity();
-	  gluLookAt(x, y, z, x + lx,y + ly,z + lz, 0.0f, 1.0f, 0.0f);
+	  if(mode == MODE_FIRST_PERSON)gluLookAt(x, y, z, x + lx,y + ly,z + lz, 0.0f, 1.0f, 0.0f);
 	}
 
 	void move(int i) 
@@ -24,7 +28,7 @@ class Player{
 	  x = x + i*(lx)*0.1;
 	  z = z + i*(lz)*0.1;
 	  glLoadIdentity();
-	  gluLookAt(x, y, z, x + lx,y + ly,z + lz, 0.0f,1.0f,0.0f);
+	  if(mode == MODE_FIRST_PERSON)gluLookAt(x, y, z, x + lx,y + ly,z + lz, 0.0f,1.0f,0.0f);
 	}
 
 	int points;
@@ -34,10 +38,12 @@ class Target{
 	public:
 	float x,y,z;
 	int points;
+	int side;	//1=top, 0=bottom
 	bool reached;
-	Target (float a, float b, float c, int p)
+	Target (float a, float b, float c, int p,int s)
 	{
 		x=a,y=b,z=c,points=p;
+		side = s;
 		reached=false;
 	}
 };
@@ -275,6 +281,14 @@ Level::Level(string &l)
 			if(levelMap.is_open())
 			{
 				levelMap>>map[i][j];
+				if(map[i][j]>=10)
+				{
+					targets.push_back(Target((i-MAPSIZE/2)*BLOCKSIZE, 0.2 , (j-MAPSIZE/2)*BLOCKSIZE, map[i][j], 1));
+				}
+				else if(map[i][j]<=-10)
+				{
+					targets.push_back(Target((i-MAPSIZE/2-1)*BLOCKSIZE, 0.2 , (j-MAPSIZE/2)*BLOCKSIZE, -map[i][j], 2));
+				}
 			}
 			else
 				cout<<"Couldn't open file!";
@@ -295,9 +309,6 @@ Level::Level(string &l)
 //	p->curx=p->cury=0; p->curz=3.4;	
 	p->lx = 1; p->ly = 0; p->lz = 0;
 	random_angle = 0;
-	targets.push_back(Target(5, 0.2 , 2, 20));
-	targets.push_back(Target(7, 0.2 , -4, 30));
-	targets.push_back(Target(-2, 0.2 , 3, 50));
 	
 }
 
@@ -348,9 +359,10 @@ void Level::drawTerrain()
 		glColor3f(1,1,1);
 		for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
 		{
-			glBindTexture(GL_TEXTURE_2D,tex_grass);
+			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*1;
+			if(map[i+MAPSIZE/2][j+MAPSIZE/2]==0)glBindTexture(GL_TEXTURE_2D,tex_grass);
+			else glBindTexture(GL_TEXTURE_2D,tex_wall);
 			
-			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*3;
 			glBegin(GL_QUADS);
 				glNormal3f(0,-1,0);
 				glTexCoord2f(0,0);glVertex3f(i , high, j + block);
@@ -442,65 +454,72 @@ void Level::display()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LIGHTING);
+			glLoadIdentity();
+			float pos[]={0,1,1};
+			glLightfv(GL_LIGHT0,GL_POSITION,pos);
+			glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 100.0);
+			glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0);
+			//float dir[]={p->lx,p->ly,p->lz};
+			float dir[]={0,0,-1};
+			glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,dir);
+			glEnable(GL_LIGHT0);
 		
-		glLoadIdentity();
-		float pos[]={0,1,1};
-		glLightfv(GL_LIGHT0,GL_POSITION,pos);
-		glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 100.0);
-    		glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0);
-		//float dir[]={p->lx,p->ly,p->lz};
-		float dir[]={0,0,-1};
-		glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,dir);
-		glEnable(GL_LIGHT0);
-		gluLookAt(p->x, p->y, p->z, p->x + p->lx,p->y + p->ly,p->z + p->lz, 0.0f, 1.0f, 0.0f);
-		
-
-		glPushMatrix();
-			glTranslatef(p->x,p->y+-1,p->z);
-			glTranslatef(p->lx,p->ly,p->lz);
-			glRotatef(-(p->angle*180/3.14),0,1,0);
-			glTranslatef(0,0,-0.5);
-			glRotatef(180,0,1,0);
-			//glScalef(0.5,0.5,0.5);
-			//player->DrawColor();
-		glPopMatrix();
-	//	glRotatef(roty, 0, 1, 0);
-	//	glRotatef(rotx, 1, 0, 0);
-
-
-		glRotatef(flip_angle,1,0,0);
-		
-		glPushMatrix();
-			glColorMaterial(GL_FRONT, GL_DIFFUSE);
-			//glEnable(GL_COLOR_MATERIAL);
-			glDisable(GL_LIGHTING);
-			drawTerrain();
-
-			//room->DrawColor();
-			glEnable(GL_LIGHTING);
-		glPopMatrix();
-		for(int i = 0; i < targets.size() ; i++)
+		if(mode == MODE_FIRST_PERSON)
 		{
-			if(targets[i].reached==false)
-			{
-				glPushMatrix();
-					glTranslatef(targets[i].x,targets[i].y,targets[i].z);
-					glRotatef(random_angle, 0,1,0);
-					glScalef(0.25,0.25,0.25);
-					randomFace->DrawColor();
-				glPopMatrix();
-			}
+			gluLookAt(p->x, p->y, p->z, p->x + p->lx,p->y + p->ly,p->z + p->lz, 0.0f, 1.0f, 0.0f);
+		}		
+		else if(mode == MODE_THIRD_PERSON)
+		{
+			gluLookAt(p->x+10, 20, p->z+10, p->x,p->y,p->z, -0.57f, 0.57f, -0.57f);
 		}
-		glTranslatef(0, -0.02,0);
-		glRotatef(180,1,0,0);
 
-		glPushMatrix();
-			//glTranslatef(0,-50,0);
-			glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
-			//inv->DrawColor();
-			//inv->DrawTexture();
-			glDisable(GL_TEXTURE_2D);
-		glPopMatrix();
+			glPushMatrix();
+				glTranslatef(p->x,p->y+-1,p->z);
+				//glTranslatef(p->lx,p->ly,p->lz);
+				glRotatef(-(p->angle*180/3.14),0,1,0);
+				glTranslatef(0,0,-0.5);
+				glRotatef(180,0,1,0);
+				//glScalef(0.5,0.5,0.5);
+				player->DrawColor();
+			glPopMatrix();
+		//	glRotatef(roty, 0, 1, 0);
+		//	glRotatef(rotx, 1, 0, 0);
+
+
+			glRotatef(flip_angle,1,0,0);
+			
+			glPushMatrix();
+				glColorMaterial(GL_FRONT, GL_DIFFUSE);
+				//glEnable(GL_COLOR_MATERIAL);
+				glDisable(GL_LIGHTING);
+				drawTerrain();
+
+				//room->DrawColor();
+				glEnable(GL_LIGHTING);
+			glPopMatrix();
+			for(int i = 0; i < targets.size() ; i++)
+			{
+				if(targets[i].reached==false)
+				{
+					glPushMatrix();
+						glTranslatef(targets[i].x,targets[i].y,targets[i].z);
+						glRotatef(random_angle, 0,1,0);
+						glScalef(0.25,0.25,0.25);
+						randomFace->DrawColor();
+					glPopMatrix();
+				}
+			}
+			glTranslatef(0, -0.02,0);
+			glRotatef(180,1,0,0);
+
+			glPushMatrix();
+				//glTranslatef(0,-50,0);
+				glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
+				//inv->DrawColor();
+				//inv->DrawTexture();
+				glDisable(GL_TEXTURE_2D);
+			glPopMatrix();
+		
 	
 		//HUD (Hud dabangg dabangg)
 		glMatrixMode(GL_PROJECTION);
@@ -668,6 +687,11 @@ void Level::keyPress(unsigned char key, int x, int y)
 		else if(key == 'q')
 		{
 			glutTimerFunc(100, rotate , 1 );
+		}
+		else if(key == 'm')
+		{
+			if(mode == MODE_FIRST_PERSON) mode = MODE_THIRD_PERSON;
+			else if(mode == MODE_THIRD_PERSON) mode = MODE_FIRST_PERSON;
 		}
 	}
 	if(key == 'y')
