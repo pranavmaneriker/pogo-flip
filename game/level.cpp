@@ -290,10 +290,12 @@ Level::Level(string &l)
 				if(map[i][j]>=10)
 				{
 					targets.push_back(Target((i-MAPSIZE/2)*BLOCKSIZE, 0.2 , (j-MAPSIZE/2)*BLOCKSIZE, map[i][j], 1));
+					map[i][j]=0;
 				}
 				else if(map[i][j]<=-10)
 				{
 					targets.push_back(Target((i-MAPSIZE/2-1)*BLOCKSIZE, 0.2 , (j-MAPSIZE/2)*BLOCKSIZE, -map[i][j], 2));
+					map[i][j]=0;
 				}
 			}
 			else
@@ -844,6 +846,11 @@ void Level::keyPress(unsigned char key, int x, int y)
 		else if(key == 'o')
 		{
 			nextLevel();
+		}
+		else if(key == 'm')
+		{
+			if(mode == MODE_FIRST_PERSON) mode = MODE_THIRD_PERSON;
+			else if( mode == MODE_THIRD_PERSON) mode = MODE_FIRST_PERSON;
 		}
 	}
 	if(key == 'y')
