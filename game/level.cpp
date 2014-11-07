@@ -9,6 +9,8 @@ float rotx,roty,rotz;
 GLuint p1,v1,f1;
 int co = 0;
 int mode = 2;
+int mode_dist = 20;
+float mode_angle = 0;
 class Player{
 	public:
 	float angle,ratio;
@@ -367,7 +369,7 @@ void Level::drawTerrain()
 		glColor3f(1,1,1);
 		for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
 		{
-			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*1;
+			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*3;
 			if(map[i+MAPSIZE/2][j+MAPSIZE/2]==0)glBindTexture(GL_TEXTURE_2D,tex_grass);
 			else glBindTexture(GL_TEXTURE_2D,tex_wall);
 			
@@ -549,7 +551,7 @@ void Level::display()
 		}		
 		else if(mode == MODE_THIRD_PERSON)
 		{
-			gluLookAt(p->x+10, 20, p->z+10, p->x,p->y,p->z, -0.57f, 0.57f, -0.57f);
+			gluLookAt(p->x+(mode_dist/2)*cos((mode_angle+45)*PI/180), mode_dist, p->z+(mode_dist/2)*sin((mode_angle+45)*PI/180), p->x,p->y,p->z, -0.57f, 0.57f, -0.57f); //change the up vector
 		}
 
 			glPushMatrix();
@@ -704,7 +706,7 @@ void Level::display()
 		glBegin(GL_TRIANGLE_FAN); //BEGIN CIRCLE
 		glVertex2f(map_ox, map_oy); // center of circle
 		for (int i = 0; i <= 40; i++)   {
-			glVertex2f ( (map_ox + (radius * cos(i * twicePi / 40))), (map_oy + (radius * sin(i * twicePi / 40))) );
+			glVertex2f ( (map_ox + (radius *cos(i * twicePi / 40))), (map_oy + (radius * sin(i * twicePi / 40))) );
 		}
 		glEnd();
 		
@@ -852,6 +854,22 @@ void Level::keyPress(unsigned char key, int x, int y)
 			if(mode == MODE_FIRST_PERSON) mode = MODE_THIRD_PERSON;
 			else if( mode == MODE_THIRD_PERSON) mode = MODE_FIRST_PERSON;
 		}
+		else if(key == 'z')
+		{
+			mode_dist += 2;
+		}
+		else if(key == 'x')
+		{
+			mode_dist -= 2;
+		}
+		else if(key == 'c')
+		{
+			mode_angle += 5;
+		}
+		else if(key == 'v')
+		{
+			mode_angle -= 5;
+		}
 	}
 	if(key == 'y')
 	{
@@ -862,26 +880,6 @@ void Level::keyPress(unsigned char key, int x, int y)
 	{
 		saveScreenShot();
 	}
-////////else if(key == 'i')
-////////{
-////////	p->curx+=0.3;
-////////}
-////////else if(key == 'k')
-////////{
-////////	p->curx-=0.3;
-////////}
-////////else if(key == 'j')
-////////{
-////////	p->curz-=0.3;
-////////}
-////////else if(key == 'l')
-////////{
-////////	p->curz+=0.3;
-////////}
-////////else if(key == KEY_ESCAPE)
-////////{
-////////	exit(0);
-////////}
 
 	for(int i=0; i<targets.size(); i++)
 	{
