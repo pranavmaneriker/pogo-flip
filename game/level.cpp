@@ -4,6 +4,7 @@
 
 #define MODE_FIRST_PERSON 1
 #define MODE_THIRD_PERSON 2
+#define NUM_MENU_ITEMS 5
 
 float rotx,roty,rotz;
 GLuint p1,v1,f1;
@@ -11,6 +12,7 @@ int co = 0;
 int mode = 2;
 int mode_dist = 20;
 float mode_angle = 0;
+int menu_index=0;
 class Player{
 	public:
 	float angle,ratio;
@@ -62,7 +64,7 @@ void saveScreenShot()
 }
 
 //Global textures
-GLuint tex_2d[10] ;
+GLuint tex_2d[30] ;
 int lastUsed=0;
 int initImage(string path)
 {
@@ -155,7 +157,6 @@ class Model_OBJ{
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
 			glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
-		//
 		}		
 			glDisableClientState(GL_VERTEX_ARRAY);	
 			glDisableClientState(GL_NORMAL_ARRAY);
@@ -184,7 +185,6 @@ class Model_OBJ{
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
 			if(!mesh.normals.empty())glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));	
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
-		//
 		}		
 			glDisableClientState(GL_VERTEX_ARRAY);	
 			glDisableClientState(GL_NORMAL_ARRAY);
@@ -212,13 +212,11 @@ class Model_OBJ{
 				glMaterialfv(GL_FRONT, GL_SPECULAR, materials[mat].specular);
 				glMaterialfv(GL_FRONT, GL_SHININESS, &materials[mat].shininess);
 			}	
-		//	glBindTexture(GL_TEXTURE_2D, texmaps[materials[mat].name]);	
 			glVertexPointer(3,GL_FLOAT, 0 , &(mesh.positions[0]));
 			if(!mesh.normals.empty())glNormalPointer(GL_FLOAT, 0, &(mesh.normals[0]));
 			
 			if(!mesh.texcoords.empty())glTexCoordPointer(3,GL_FLOAT, 0, &mesh.texcoords[0]);
 			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, &(mesh.indices[0]));		
-		//
 		}		
 			glDisableClientState(GL_VERTEX_ARRAY);	
 			glDisableClientState(GL_NORMAL_ARRAY);
@@ -256,16 +254,39 @@ class Level{
 	bool doesCollide();
 	int tex_grass;
 	int tex_wall;
+	int splash_1;
+	int new0, new1, settings0, settings1, hall0, hall1, quit0, quit1, help0, help1;
 };
 //If objects with textures need loading
 void
 Level::initImageTextures()
 {
-	//inv->LoadTextures();
 	string path = "../textures/grass.jpg";	
 	tex_grass = initImage(path);
 	path = "../textures/wall.jpg";
-	tex_wall = initImage(path);	
+	tex_wall = initImage(path);
+	path = "../textures/abc.bmp";
+	splash_1 = initImage(path);
+	path = "../textures/new.bmp";
+	new0= initImage(path);
+	path = "../textures/new1.bmp";
+	new1 = initImage(path);
+	path = "../textures/hall.bmp";
+	hall0 = initImage(path);
+	path = "../textures/hall1.bmp";
+	hall1 = initImage(path);
+	path = "../textures/settings.bmp";
+	settings0 = initImage(path);
+	path = "../textures/settings1.bmp";
+	settings1 = initImage(path);
+	path = "../textures/help.bmp";
+	help0 = initImage(path);
+	path = "../textures/help1.bmp";
+	help1 = initImage(path);
+	path = "../textures/quit.bmp";
+	quit0 = initImage(path);
+	path = "../textures/quit1.jpg";
+	quit1 = initImage(path);
 }
 //Loading level 
 Level::Level(string &l)
@@ -280,7 +301,6 @@ Level::Level(string &l)
 	player = new Model_OBJ;
 	room = new Model_OBJ;
 	randomFace = new Model_OBJ;
-	//inv->Load("../rooms/Level_1_test.obj","../rooms/");
 	ifstream levelMap ("../Levels/1/map");
 	for(int i=0;i<MAPSIZE;i++)
 	{
@@ -291,12 +311,12 @@ Level::Level(string &l)
 				levelMap>>map[i][j];
 				if(map[i][j]>=10)
 				{
-					targets.push_back(Target((i-MAPSIZE/2)*BLOCKSIZE, 0.2 , (j-MAPSIZE/2)*BLOCKSIZE, map[i][j], 1));
+					targets.push_back(Target((i-MAPSIZE/2)*BLOCKSIZE, 0.3 , (j-MAPSIZE/2)*BLOCKSIZE, map[i][j], 1));
 					map[i][j]=0;
 				}
 				else if(map[i][j]<=-10)
 				{
-					targets.push_back(Target((i-MAPSIZE/2-1)*BLOCKSIZE, 0.2 , (j-MAPSIZE/2)*BLOCKSIZE, -map[i][j], 2));
+					targets.push_back(Target((i-MAPSIZE/2-1)*BLOCKSIZE, 0.3 , (j-MAPSIZE/2)*BLOCKSIZE, -map[i][j], 2));
 					map[i][j]=0;
 				}
 			}
@@ -305,18 +325,13 @@ Level::Level(string &l)
 		}
 	}
 	levelMap.close();
-	//inv->Load("../rooms/texture/texture.obj", "../rooms/texture/");
-	//inv->Load("../rooms/Small Tropical Island/Small Tropical Island.obj", "../rooms/Small Tropical Island/");
-	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
 	player->Load("../models/Tux.obj", "../models/");
-	randomFace->Load("../models/monkey.obj","../models/");
-	//room->Load(&cur_level_path[0],"../rooms/");	//&cur_level_path[0]  might avoid warning but is it safe?	
+	randomFace->Load("../models/monkey.obj","../models/");	
 	g_rotation = 0;
 	p = new Player;
 	p->angle=0;
 	p->x = 0; p->y = 1; p->z = 0; p->points =0;
 	roty=54;
-//	p->curx=p->cury=0; p->curz=3.4;	
 	p->lx = 1; p->ly = 0; p->lz = 0;
 	random_angle = 0;
 	
@@ -418,41 +433,46 @@ void Level::drawTerrain()
 }
 void Level::drawTransition()
 {
-	glClearColor(0.7215,0.8627,0.9490,1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glLoadIdentity();
-	glTranslatef(0, -1, -3);
-	glRotatef(random_angle, 0, 1, 0);
-	player->DrawColor();
 	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glOrtho(0.0, win.width, win.height, 0.0, -1.0, 10.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_LIGHTING);
-	glDisable(GL_LIGHT0);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	const char* x = "                Pogo Flip\n_______________________";
-	unsigned char* y;
-	y = (unsigned char*) x;
-	glColor3f(0,0,0);
-	glRasterPos2i(win.width/2 - 150, win.height/4);
-	glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, y);
-	x = "You have completed this level\nPress Y to go to the next level";
-	y = (unsigned char*) x;
-	glColor3f(0,0,0);
-	glRasterPos2i(win.width/2 - 75, win.height/4 +75);
-	glutBitmapString(GLUT_BITMAP_HELVETICA_12, y);
-	
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glOrtho(0.0, win.width, win.height, 0.0, -1.0, 10.0);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_LIGHT0);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_TEXTURE_2D);
+		glColor3f(1,1,1);
+		glBindTexture(GL_TEXTURE_2D,splash_1);
+		glBegin(GL_QUADS);
+		    glTexCoord2f(0,1);glVertex2f(0.0, 0.0);
+		    glTexCoord2f(1,1);glVertex2f(win.width, 0.0);
+		    glTexCoord2f(1,0);glVertex2f(win.width, win.height);
+		    glTexCoord2f(0,0);glVertex2f(0.0, win.height);
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		
+		
+		
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glLoadIdentity();
+		glTranslatef(1.75, -1, -5);
+		glScalef(0.4, 0.4, 0.4);
+		glRotatef(random_angle, 0, 1, 0);
+		randomFace->DrawColor();
+		
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
 }
 void Level::nextLevel()
 {
@@ -493,15 +513,6 @@ void Level::display()
 	}
 	else if(!has_started)
 	{
-		glClearColor(0.7215,0.8627,0.9490,1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		glLoadIdentity();
-		glTranslatef(0, -1, -3);
-		glRotatef(random_angle, 0, 1, 0);
-		player->DrawColor();
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 		glLoadIdentity();
@@ -513,17 +524,61 @@ void Level::display()
 		glDisable(GL_LIGHTING);
 		glDisable(GL_LIGHT0);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		const char* x = "                Pogo Flip\n_______________________";
-		unsigned char* y;
-		y = (unsigned char*) x;
-		glColor3f(0,0,0);
-		glRasterPos2i(win.width/2 - 150, win.height/4);
-		glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, y);
-		x = "Press 'y' to start the game.";
-		y = (unsigned char*) x;
-		glColor3f(0,0,0);
-		glRasterPos2i(win.width/2 - 75, win.height/4 +75);
-		glutBitmapString(GLUT_BITMAP_HELVETICA_12, y);
+		glEnable(GL_TEXTURE_2D);
+		glColor3f(1,1,1);
+		glBindTexture(GL_TEXTURE_2D,splash_1);
+		glBegin(GL_QUADS);
+		    glTexCoord2f(0,1);glVertex2f(0.0, 0.0);
+		    glTexCoord2f(1,1);glVertex2f(win.width, 0.0);
+		    glTexCoord2f(1,0);glVertex2f(win.width, win.height);
+		    glTexCoord2f(0,0);glVertex2f(0.0, win.height);
+		glEnd();
+		int menu_w, menu_h, menu_gap, menu_x, menu_y;
+		menu_w = 250;
+		menu_h = 37;
+		menu_gap = 10;
+		menu_x = 300;
+		menu_y = 300;
+		
+		for(int i=0;i<NUM_MENU_ITEMS;i++)
+		{
+			int temp, temp_x;
+			if(menu_index==i){temp=i+5;temp_x = menu_x + 20;}
+			else{temp_x = menu_x; temp = i;}
+			glColor3f(1,1,1);
+			if(temp==0) glBindTexture(GL_TEXTURE_2D,new0);
+			else if(temp==1) glBindTexture(GL_TEXTURE_2D,hall0);
+			else if(temp==2) glBindTexture(GL_TEXTURE_2D,help0);
+			else if(temp==3) glBindTexture(GL_TEXTURE_2D,settings0);
+			else if(temp==4) glBindTexture(GL_TEXTURE_2D,quit0);
+			else if(temp==5) glBindTexture(GL_TEXTURE_2D,new1);
+			else if(temp==6) glBindTexture(GL_TEXTURE_2D,hall1);
+			else if(temp==7) glBindTexture(GL_TEXTURE_2D,help1);
+			else if(temp==8) glBindTexture(GL_TEXTURE_2D,settings1);
+			else if(temp==9) glBindTexture(GL_TEXTURE_2D,quit1);
+
+			glBegin(GL_QUADS);
+				glTexCoord2f(0,0);glVertex2f(temp_x, menu_y + i*(menu_gap+menu_h) + menu_h);
+				glTexCoord2f(0,1);glVertex2f(temp_x, menu_y + i*(menu_gap+menu_h));
+				glTexCoord2f(1,1);glVertex2f(temp_x + menu_w,  menu_y + i*(menu_gap+menu_h));
+				glTexCoord2f(1,0);glVertex2f(temp_x + menu_w, menu_y + i*(menu_gap+menu_h) + menu_h);
+			glEnd();
+		}
+		glDisable(GL_TEXTURE_2D);
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		
+		
+		
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glLoadIdentity();
+		glTranslatef(1.75, -1, -5);
+		glRotatef(random_angle, 0, 1, 0);
+		player->DrawColor();
 		
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
@@ -812,7 +867,6 @@ void Level::keyPress(unsigned char key, int x, int y)
 			{
 				p->move(-1);
 			}
-			//p->z+=0.3;
 		}
 		else if( key == 's' || key == 'S')
 		{
@@ -821,7 +875,6 @@ void Level::keyPress(unsigned char key, int x, int y)
 			{
 				p->move(1);
 			}
-			//p->z-=0.3;
 		}
 		else if(key == 'a' || key == 'A')
 		{
@@ -830,7 +883,6 @@ void Level::keyPress(unsigned char key, int x, int y)
 			{
 				p->angle += 0.1f;p->orient(p->angle);
 			}
-			//p->x+=0.3;
 		}
 		else if(key == 'd' || key == 'D')
 		{
@@ -839,7 +891,6 @@ void Level::keyPress(unsigned char key, int x, int y)
 			{
 				p->angle -=0.1f;p->orient(p->angle);
 			}
-		//	p->x-=0.3;
 		}
 		else if(key == 'q' || key == 'Q')
 		{
@@ -901,48 +952,23 @@ void Level::specialKeyPress(int key,int x,int y)
 {
 ////////if ( key == GLUT_KEY_RIGHT )
 ////////{
-////////	roty += 3.0;
-////////	if(roty>=360)roty-=360;
-////////	float tx, tz;
-////////	tx = p->curx;
-////////	tz = p->curz;
-////////	p->curx = tx*cos(3.0*PI/180) + (tz + 3.4)*sin(3.0*PI/180);
-////////	p->curz = (tz + 3.4)*cos(3.0*PI/180) - tx*sin(3.0*PI/180) - 3.4;
 ////////}
 ////////if ( key == GLUT_KEY_LEFT )
 ////////{
-////////	roty -= 3.0;
-////////	if(roty<=0)roty+=360;
-////////	float tx, tz;
-////////	tx = p->curx;
-////////	tz = p->curz;
-////////	p->curx = tx*cos((360-3.0)*PI/180)+(tz + 3.4)*sin((360-3.0)*PI/180);
-////////	p->curz = (tz + 3.4)*cos((360-3.0)*PI/180)-tx*sin((360-3.0)*PI/180) - 3.4;
 ////////}
-////////if ( key == GLUT_KEY_UP )
-////////{
-////////	p->z+=0.3;
-////////	p->curz+=0.3*cos(roty*PI/180);
-////////	p->curx+=0.3*sin(roty*PI/180);
-////////	//rotx += 3.0;
-////////	//if(rotx>=360)rotx-=360;
-////////}
-////////if ( key == GLUT_KEY_DOWN )
-////////{
-////////	p->z-=0.3;
-////////	p->curz-=0.3*cos(roty*PI/180);
-////////	p->curx-=0.3*sin(roty*PI/180);
-////////	//rotx -= 3.0;
-////////	//if(rotx<=0)rotx+=360;
-////////}
-////////for(int i=0; i<targets.size(); i++)
-////////{
-////////	if((targets[i].x-p->curx)*(targets[i].x-p->curx)+(targets[i].z-p->curz)*(targets[i].z-p->curz) <= 1 && targets[i].reached == false)
-////////	{
-////////		targets[i].reached = true;
-////////		p->points += targets[i].points;
-////////	}
-////////}
-////////glutPostRedisplay();
-//////////Handle arrow, function keys etc
+if ( key == GLUT_KEY_UP )
+{
+	if(!has_started)
+	{
+		menu_index = (menu_index-1 + NUM_MENU_ITEMS) % NUM_MENU_ITEMS;
+	}
+}
+if ( key == GLUT_KEY_DOWN )
+{
+	if(!has_started)
+	{
+		menu_index = (menu_index+1) % NUM_MENU_ITEMS;
+	}
+}
+glutPostRedisplay();
 }
