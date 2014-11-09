@@ -13,6 +13,8 @@ int mode = 2;
 int mode_dist = 20;
 float mode_angle = 0;
 int menu_index=0;
+int show_sidehud = 1;
+int hud_ox = 0;
 class Player{
 	public:
 	float angle,ratio;
@@ -550,8 +552,8 @@ void Level::display()
 			else if(temp==1) glBindTexture(GL_TEXTURE_2D,hall0);
 			else if(temp==2) glBindTexture(GL_TEXTURE_2D,help0);
 			else if(temp==3) glBindTexture(GL_TEXTURE_2D,settings0);
-			else if(temp==4) glBindTexture(GL_TEXTURE_2D,quit0);
-			else if(temp==5) glBindTexture(GL_TEXTURE_2D,new1);
+			else if(temp==4) glBindTexture(GL_TEXTURE_2D,tex_wall);
+			else if(temp==5) glBindTexture(GL_TEXTURE_2D,tex_grass);
 			else if(temp==6) glBindTexture(GL_TEXTURE_2D,hall1);
 			else if(temp==7) glBindTexture(GL_TEXTURE_2D,help1);
 			else if(temp==8) glBindTexture(GL_TEXTURE_2D,settings1);
@@ -670,27 +672,38 @@ void Level::display()
 		glDisable(GL_LIGHT0);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		
-		int hud_width = 15*win.width/100;
+		int hud_width = 15*win.width/100 + 20;
 		int hud_pad = 15;
+		
+		if(show_sidehud)
+		{
+			hud_ox+=20;
+			hud_ox = min(0, hud_ox);
+		}
+		else
+		{
+			hud_ox-=20;
+			hud_ox = max(-hud_width, hud_ox);
+		}
 		glBegin(GL_QUADS);
 		    glColor3f(0.8, 0.4, 0.4);
-		    glVertex2f(0.0, 0.0);
-		    glVertex2f(hud_width, 0.0);
-		    glVertex2f(hud_width, win.height);
-		    glVertex2f(0.0, win.height);
+		    glVertex2f(hud_ox + 0.0, 0.0);
+		    glVertex2f(hud_ox + hud_width, 0.0);
+		    glVertex2f(hud_ox + hud_width, win.height);
+		    glVertex2f(hud_ox + 0.0, win.height);
 		glEnd();
 		
+			/*
+			//printing text
+			char buffer [5000];
 		
-		//printing text
-		char buffer [5000];
-		
-		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
-		unsigned char* y;
-		y = (unsigned char*) buffer;//strcat(x,rem);
-		glColor3f(0,0,0);
-		glRasterPos2i(hud_pad, 100);
-		glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
-		
+			sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
+			unsigned char* y;
+			y = (unsigned char*) buffer;//strcat(x,rem);
+			glColor3f(0,0,0);
+			glRasterPos2i(hud_pad, 100);
+			glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
+			*/
 		
 		int bar_width = 500;
 		int bar_height = 50;
@@ -745,9 +758,10 @@ void Level::display()
 		int map_oy = win.height - hud_width/2;
 		//glRotatef(random_angle, 0, 0, 1);
 		//glTranslatef(map_ox, map_oy, 0);
-		
-		double radius = 150;   
-		glColor3f(0, 0.8, 0);
+		glEnable (GL_BLEND);
+		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		double radius = 115;   
+		glColor4f(0, 0.5, 0, 0.6);
 		double twicePi = 2.0 * 3.142;
 		glBegin(GL_TRIANGLE_FAN); //BEGIN CIRCLE
 		glVertex2f(map_ox, map_oy); // center of circle
@@ -756,8 +770,8 @@ void Level::display()
 		}
 		glEnd();
 		
-		radius = 130;   
-		glColor3f(0, 1, 0);
+		radius = 110;   
+		glColor4f(0, 0.8, 0, 0.4);
 		glBegin(GL_TRIANGLE_FAN); //BEGIN CIRCLE
 		glVertex2f(map_ox, map_oy); // center of circle
 		for (int i = 0; i <= 40; i++)   {
@@ -789,7 +803,7 @@ void Level::display()
 					else if(high<0)
 						glColor3f(0,0,0);
 					else
-						glColor3f(0,1,0);
+						glColor4f(0,0.8,0,0);
 					glVertex2f(le, bo);
 					glVertex2f(le, bo - unit);
 					glVertex2f(le - unit, bo - unit);
@@ -822,6 +836,7 @@ void Level::display()
 		glEnd();
 		
 		// Making sure we can render 3d again
+		glDisable(GL_BLEND);
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
@@ -921,6 +936,10 @@ void Level::keyPress(unsigned char key, int x, int y)
 		{
 			mode_angle -= 5;
 		}
+		else if(key== 'b' )
+		{	
+			show_sidehud = 1 - show_sidehud;
+		}
 	}
 	if(key == 'y')
 	{
@@ -931,7 +950,11 @@ void Level::keyPress(unsigned char key, int x, int y)
 	{
 		saveScreenShot();
 	}
-
+	else if(key == ' ')
+	{
+		if(menu_index == 0)
+			has_started = true;
+	}
 	for(int i=0; i<targets.size(); i++)
 	{
 		if((targets[i].x-(p->x+p->lx))*(targets[i].x-(p->x+p->lx))+(targets[i].z-(p->lz+p->z))*(targets[i].z-(p->lz+p->z)) <= 1 && targets[i].reached == false)
