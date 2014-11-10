@@ -6,6 +6,10 @@
 #define MODE_THIRD_PERSON 2
 #define NUM_MENU_ITEMS 5
 
+#define JUMP_VERT_VELOCITY 0.5
+#define JUMP_TIME 20
+#define GRAVITY -2*JUMP_VERT_VELOCITY/(JUMP_TIME-1.0)
+
 float rotx,roty,rotz;
 GLuint p1,v1,f1;
 int co = 0;
@@ -15,6 +19,11 @@ float mode_angle = 0;
 int menu_index=0;
 int show_sidehud = 1;
 int hud_ox = 0;
+
+float jump_velocity = 0;
+bool is_jumping = false;
+int time_spent_jumping = 0;
+
 class Player{
 	public:
 	float angle,ratio;
@@ -29,12 +38,12 @@ class Player{
 	  if(mode == MODE_FIRST_PERSON)gluLookAt(x, y, z, x + lx,y + ly,z + lz, 0.0f, 1.0f, 0.0f);
 	}
 
-	void move(int i) 
+	void move(float i) 
 	{
 	  x = x + i*(lx)*0.1;
 	  z = z + i*(lz)*0.1;
 	  glLoadIdentity();
-	  if(mode == MODE_FIRST_PERSON)gluLookAt(x, y, z, x + lx,y + ly,z + lz, 0.0f,1.0f,0.0f);
+	  if(mode == MODE_FIRST_PERSON)gluLookAt(x, y, z, x + lx,1 + ly,z + lz, 0.0f,1.0f,0.0f);
 	}
 
 	int points;
@@ -610,53 +619,67 @@ void Level::display()
 		{
 			gluLookAt(p->x+(mode_dist/2)*cos((mode_angle+45)*PI/180), mode_dist, p->z+(mode_dist/2)*sin((mode_angle+45)*PI/180), p->x,p->y,p->z, -0.57f, 0.57f, -0.57f); //change the up vector
 		}
-
-			glPushMatrix();
-				glTranslatef(p->x,p->y+-1,p->z);
-				//glTranslatef(p->lx,p->ly,p->lz);
-				glRotatef(-(p->angle*180/3.14),0,1,0);
-				glTranslatef(0,0,-0.5);
-				glRotatef(180,0,1,0);
-				//glScalef(0.5,0.5,0.5);
-				player->DrawColor();
-			glPopMatrix();
-		//	glRotatef(roty, 0, 1, 0);
-		//	glRotatef(rotx, 1, 0, 0);
-
-
-			glRotatef(flip_angle,1,0,0);
-			
-			glPushMatrix();
-				glColorMaterial(GL_FRONT, GL_DIFFUSE);
-				//glEnable(GL_COLOR_MATERIAL);
-				glDisable(GL_LIGHTING);
-				drawTerrain();
-
-				//room->DrawColor();
-				glEnable(GL_LIGHTING);
-			glPopMatrix();
-			for(int i = 0; i < targets.size() ; i++)
+		
+		if(is_jumping)
+		{
+			p->y += jump_velocity;
+			float dist = 20.0/JUMP_TIME;
+			p->x = p->x + dist*(p->lx)*0.1;
+	  		p->z = p->z + dist*(p->lz)*0.1;
+			time_spent_jumping ++;
+			jump_velocity += GRAVITY;
+			if(doesCollide())
 			{
-				if(targets[i].reached==false)
-				{
-					glPushMatrix();
-						glTranslatef(targets[i].x,targets[i].y,targets[i].z);
-						glRotatef(random_angle, 0,1,0);
-						glScalef(0.25,0.25,0.25);
-						randomFace->DrawColor();
-					glPopMatrix();
-				}
+				time_spent_jumping = JUMP_TIME;
+				p->x = p->x - dist*(p->lx)*0.1;
+	  			p->z = p->z - dist*(p->lz)*0.1;
+	  			p->y = 1;
 			}
-			glTranslatef(0, -0.02,0);
-			glRotatef(180,1,0,0);
+		}
+		glPushMatrix();
+			glTranslatef(p->x,p->y+-1,p->z);
+			//glTranslatef(p->lx,p->ly,p->lz);
+			glRotatef(-(p->angle*180/3.14),0,1,0);
+			glTranslatef(0,0,-0.5);
+			glRotatef(180,0,1,0);
+			//glScalef(0.5,0.5,0.5);
+			player->DrawColor();
+		glPopMatrix();
+		if(time_spent_jumping >= JUMP_TIME)
+		{
+			is_jumping = false;
+			p->y = 1;
+		}
+	//	glRotatef(roty, 0, 1, 0);
+	//	glRotatef(rotx, 1, 0, 0);
 
-			glPushMatrix();
-				//glTranslatef(0,-50,0);
-				glEnable(GL_TEXTURE_2D);			// Enable Texture Mapping
-				//inv->DrawColor();
-				//inv->DrawTexture();
-				glDisable(GL_TEXTURE_2D);
-			glPopMatrix();
+
+		glRotatef(flip_angle,1,0,0);
+		
+		glPushMatrix();
+			glColorMaterial(GL_FRONT, GL_DIFFUSE);
+			//glEnable(GL_COLOR_MATERIAL);
+			glDisable(GL_LIGHTING);
+			drawTerrain();
+
+			//room->DrawColor();
+			glEnable(GL_LIGHTING);
+		glPopMatrix();
+		for(int i = 0; i < targets.size() ; i++)
+		{
+			if(targets[i].reached==false)
+			{
+				glPushMatrix();
+					glTranslatef(targets[i].x,targets[i].y,targets[i].z);
+					glRotatef(random_angle, 0,1,0);
+					glScalef(0.25,0.25,0.25);
+					randomFace->DrawColor();
+				glPopMatrix();
+			}
+		}
+		glTranslatef(0, -0.02,0);
+		glRotatef(180,1,0,0);
+
 		
 	
 		//HUD (Hud dabangg dabangg)
@@ -880,39 +903,48 @@ void Level::keyPress(unsigned char key, int x, int y)
 	//normal key press events
 	if(has_started)
 	{
-		if( key == 'w' || key == 'W')
+		if(!is_jumping)
 		{
-			p->move(1);
-			if(doesCollide())
-			{
-				p->move(-1);
-			}
-		}
-		else if( key == 's' || key == 'S')
-		{
-			p->move(-1);
-			if(doesCollide())
+			if( key == 'w' || key == 'W')
 			{
 				p->move(1);
+				if(doesCollide())
+				{
+					p->move(-1);
+				}
 			}
-		}
-		else if(key == 'a' || key == 'A')
-		{
-			p->angle -= 0.1f;p->orient(p->angle);
-			if(doesCollide())
+			else if( key == 's' || key == 'S')
 			{
-				p->angle += 0.1f;p->orient(p->angle);
+				p->move(-1);
+				if(doesCollide())
+				{
+					p->move(1);
+				}
 			}
-		}
-		else if(key == 'd' || key == 'D')
-		{
-			p->angle +=0.1f;p->orient(p->angle);
-			if(doesCollide())
+			else if(key == 'a' || key == 'A')
 			{
-				p->angle -=0.1f;p->orient(p->angle);
+				p->angle -= 0.1f;p->orient(p->angle);
+				if(doesCollide())
+				{
+					p->angle += 0.1f;p->orient(p->angle);
+				}
 			}
+			else if(key == 'd' || key == 'D')
+			{
+				p->angle +=0.1f;p->orient(p->angle);
+				if(doesCollide())
+				{
+					p->angle -=0.1f;p->orient(p->angle);
+				}
+			}
+			else if(key== 'e' || key=='E')
+		{	
+			is_jumping = true;
+			time_spent_jumping = 0;
+			jump_velocity = JUMP_VERT_VELOCITY;
 		}
-		else if(key == 'q' || key == 'Q')
+		}
+		if(key == 'q' || key == 'Q')
 		{
 			glutTimerFunc(100, rotate , 1 );
 		}
@@ -920,7 +952,7 @@ void Level::keyPress(unsigned char key, int x, int y)
 		{
 			nextLevel();
 		}
-		else if(key == 'm')
+		else if(key == 'm' || key=='M')
 		{
 			if(mode == MODE_FIRST_PERSON) mode = MODE_THIRD_PERSON;
 			else if( mode == MODE_THIRD_PERSON) mode = MODE_FIRST_PERSON;
