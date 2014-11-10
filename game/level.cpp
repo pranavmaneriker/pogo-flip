@@ -266,7 +266,7 @@ class Level{
 	int tex_grass;
 	int tex_wall;
 	int splash_1;
-	int new0, new1, settings0, settings1, hall0, hall1, quit0, quit1, help0, help1;
+	int new0, new1, settings0, settings1, hall0, hall1, quit0, quit1, help0, help1, hud;
 };
 //If objects with textures need loading
 void
@@ -298,7 +298,10 @@ Level::initImageTextures()
 	quit0 = initImage(path);
 	path = "../textures/quit1.bmp";
 	quit1 = initImage(path);
+	path = "../textures/hud.png";
+	hud = initImage(path);
 }
+
 //Loading level 
 Level::Level(string &l)
 {
@@ -708,26 +711,17 @@ void Level::display()
 			hud_ox-=20;
 			hud_ox = max(-hud_width, hud_ox);
 		}
+		glEnable(GL_TEXTURE_2D);
+		glColor3f(1,1,1);
+		glBindTexture(GL_TEXTURE_2D,hud);
 		glBegin(GL_QUADS);
-		    glColor3f(0.8, 0.4, 0.4);
-		    glVertex2f(hud_ox + 0.0, 0.0);
-		    glVertex2f(hud_ox + hud_width, 0.0);
-		    glVertex2f(hud_ox + hud_width, win.height);
-		    glVertex2f(hud_ox + 0.0, win.height);
+		    glTexCoord2f(0,1);glVertex2f(hud_ox + 0.0, 0.0);
+		    glTexCoord2f(1,1);glVertex2f(hud_ox + hud_width, 0.0);
+		    glTexCoord2f(1,0);glVertex2f(hud_ox + hud_width, win.height);
+		    glTexCoord2f(0,0);glVertex2f(hud_ox + 0.0, win.height);
 		glEnd();
-		
-		/*
-		//printing text
-		char buffer [5000];
-	
-		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
-		unsigned char* y;
-		y = (unsigned char*) buffer;//strcat(x,rem);
-		glColor3f(0,0,0);
-		glRasterPos2i(hud_pad, 100);
-		glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
-s		*/
-		
+		glDisable(GL_TEXTURE_2D);
+
 		int bar_width = 500;
 		int bar_height = 50;
 		int bar_pad = 10;
