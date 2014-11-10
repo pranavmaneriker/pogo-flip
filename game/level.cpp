@@ -287,7 +287,7 @@ Level::initImageTextures()
 	help1 = initImage(path);
 	path = "../textures/quit.bmp";
 	quit0 = initImage(path);
-	path = "../textures/quit1.jpg";
+	path = "../textures/quit1.bmp";
 	quit1 = initImage(path);
 }
 //Loading level 
@@ -552,8 +552,8 @@ void Level::display()
 			else if(temp==1) glBindTexture(GL_TEXTURE_2D,hall0);
 			else if(temp==2) glBindTexture(GL_TEXTURE_2D,help0);
 			else if(temp==3) glBindTexture(GL_TEXTURE_2D,settings0);
-			else if(temp==4) glBindTexture(GL_TEXTURE_2D,tex_wall);
-			else if(temp==5) glBindTexture(GL_TEXTURE_2D,tex_grass);
+			else if(temp==4) glBindTexture(GL_TEXTURE_2D,quit0);
+			else if(temp==5) glBindTexture(GL_TEXTURE_2D,new1);
 			else if(temp==6) glBindTexture(GL_TEXTURE_2D,hall1);
 			else if(temp==7) glBindTexture(GL_TEXTURE_2D,help1);
 			else if(temp==8) glBindTexture(GL_TEXTURE_2D,settings1);
@@ -693,17 +693,17 @@ void Level::display()
 		    glVertex2f(hud_ox + 0.0, win.height);
 		glEnd();
 		
-			/*
-			//printing text
-			char buffer [5000];
-		
-			sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
-			unsigned char* y;
-			y = (unsigned char*) buffer;//strcat(x,rem);
-			glColor3f(0,0,0);
-			glRasterPos2i(hud_pad, 100);
-			glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
-			*/
+		/*
+		//printing text
+		char buffer [5000];
+	
+		sprintf (buffer, "Pogo Flip\n----------------\nReach targets using \na,w,s,d keys \nto score points \nUse r to take \nscreenshots.\n\nMonkeys to go: %d\n\n\nPoints : %d" , targets.size()-co, p->points);
+		unsigned char* y;
+		y = (unsigned char*) buffer;//strcat(x,rem);
+		glColor3f(0,0,0);
+		glRasterPos2i(hud_pad, 100);
+		glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
+s		*/
 		
 		int bar_width = 500;
 		int bar_height = 50;
@@ -735,10 +735,13 @@ void Level::display()
 		int total_targets=3;
 		float bar_length = co*(bar_width-2*bar_pad)/total_targets;
 		glBegin(GL_QUADS);
-		    glColor3f(1,0.4,0);
+		    glColor3f(1,1,0);
 		    glVertex2f(win.width-hud_pad-bar_width+bar_pad, hud_pad+bar_pad);
+		    glColor3f(1,1,0);
 		    glVertex2f(win.width-hud_pad+bar_pad+bar_length-bar_width, hud_pad+bar_pad);
+		    glColor3f(1,0.4,0);
 		    glVertex2f(win.width-hud_pad+bar_pad+bar_length-bar_width, hud_pad+bar_height-bar_pad);
+		    glColor3f(1,0.4,0);
 		    glVertex2f(win.width-hud_pad-bar_width+bar_pad, hud_pad+bar_height-bar_pad);
 		glEnd();
 		/*
@@ -761,7 +764,7 @@ void Level::display()
 		glEnable (GL_BLEND);
 		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		double radius = 115;   
-		glColor4f(0, 0.5, 0, 0.6);
+		glColor4f(1, 1, 1, 0.6);
 		double twicePi = 2.0 * 3.142;
 		glBegin(GL_TRIANGLE_FAN); //BEGIN CIRCLE
 		glVertex2f(map_ox, map_oy); // center of circle
@@ -771,10 +774,12 @@ void Level::display()
 		glEnd();
 		
 		radius = 110;   
-		glColor4f(0, 0.8, 0, 0.4);
+		
 		glBegin(GL_TRIANGLE_FAN); //BEGIN CIRCLE
+		glColor4f(0.85, 1, 0, 0.5);
 		glVertex2f(map_ox, map_oy); // center of circle
 		for (int i = 0; i <= 40; i++)   {
+			glColor4f(0.28, 1, 0, 0.7);
 			glVertex2f ( (map_ox + (radius *cos(i * twicePi / 40))), (map_oy + (radius * sin(i * twicePi / 40))) );
 		}
 		glEnd();
@@ -824,7 +829,7 @@ void Level::display()
 			//tux
 			glColor3f(1.0f, 0.0f, 0.0f);
 			glVertex3f(map_ox - p->z*unit - p->lz*unit , map_oy + p->x*unit + p->lx*unit ,0);
-			glColor3f(1,1,0);
+			glColor3f(0,0.5,1);
 			//targets
 			for(int i=0;i<targets.size();i++)
 			{
