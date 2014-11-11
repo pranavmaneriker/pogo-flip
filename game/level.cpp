@@ -323,15 +323,28 @@ Level::Level(string &l)
 			if(levelMap.is_open())
 			{
 				levelMap>>map[i][j];
-				if(map[i][j]>=10)
+			}
+			else
+				cout<<"Couldn't open file!";
+		}
+	}
+	ifstream targetMap ("../Levels/1/target");
+	int temp_target;	
+	targets.clear();	
+	for(int i=0;i<MAPSIZE;i++)
+	{
+		for(int j=0;j<MAPSIZE; j++)
+		{
+			if(targetMap.is_open())
+			{
+				targetMap>>temp_target;
+				if(temp_target > 0)
 				{
-					targets.push_back(Target((i-MAPSIZE/2)*BLOCKSIZE, 0.3 , (j-MAPSIZE/2)*BLOCKSIZE, map[i][j], 1));
-					map[i][j]=0;
+					targets.push_back(Target((i-MAPSIZE/2)*BLOCKSIZE, 0.3 , (j-MAPSIZE/2)*BLOCKSIZE, temp_target, 1));
 				}
-				else if(map[i][j]<=-10)
+				else if(temp_target <0)
 				{
-					targets.push_back(Target((i-MAPSIZE/2-1)*BLOCKSIZE, 0.3 , (j-MAPSIZE/2)*BLOCKSIZE, -map[i][j], 2));
-					map[i][j]=0;
+					targets.push_back(Target((i-MAPSIZE/2-1)*BLOCKSIZE, 0.3 , (j-MAPSIZE/2)*BLOCKSIZE, -temp_target, 2));
 				}
 			}
 			else
@@ -489,6 +502,7 @@ void Level::drawTransition()
 void Level::nextLevel()
 {
 	co = 0;
+	targets.clear();
 	is_transitioning = true;
 	current_level++;
 	flip_angle = 0;
@@ -504,6 +518,29 @@ void Level::nextLevel()
 			if(levelMap.is_open())
 			{
 				levelMap>>map[i][j];
+			}
+			else
+				cout<<"Couldn't open file!";
+		}
+	}
+	string target_path = "../Levels/"+str+"/target";
+	ifstream targetMap (target_path.c_str());
+	int temp_target;
+	for(int i=0;i<MAPSIZE;i++)
+	{
+		for(int j=0;j<MAPSIZE; j++)
+		{
+			if(targetMap.is_open())
+			{
+				targetMap>>temp_target;
+				if(temp_target > 0)
+				{
+					targets.push_back(Target((i-MAPSIZE/2)*BLOCKSIZE, 0.3 , (j-MAPSIZE/2)*BLOCKSIZE, temp_target, 1));
+				}
+				else if(temp_target <0)
+				{
+					targets.push_back(Target((i-MAPSIZE/2-1)*BLOCKSIZE, 0.3 , (j-MAPSIZE/2)*BLOCKSIZE, -temp_target, 2));
+				}
 			}
 			else
 				cout<<"Couldn't open file!";
@@ -746,7 +783,7 @@ void Level::display()
 		glEnd();
 
 		int total_targets=3;
-		float bar_length = co*(bar_width-2*bar_pad)/total_targets;
+		float bar_length = co*(bar_width-2*bar_pad)/targets.size();
 		glBegin(GL_QUADS);
 		    glColor3f(1,1,0);
 		    glVertex2f(win.width-hud_pad-bar_width+bar_pad, hud_pad+bar_pad);
@@ -863,7 +900,7 @@ void Level::display()
 	alListener3f(AL_POSITION,p->x,p->y,p->z);
 	
 	
-	if(co == 3)
+	if(co == targets.size())
 		nextLevel();
 }
 
