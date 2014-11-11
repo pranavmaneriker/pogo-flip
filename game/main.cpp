@@ -306,7 +306,6 @@ void Game::start(int *argc, char ** argv)
 int main(int argc, char **argv)
 {
 	g = new Game;
-	rotx = roty = rotz = 0;
 	g->start(&argc, argv);
 	return 0;
 }

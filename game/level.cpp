@@ -10,7 +10,6 @@
 #define JUMP_TIME 20
 #define GRAVITY -2*JUMP_VERT_VELOCITY/(JUMP_TIME-1.0)
 
-float rotx,roty,rotz;
 GLuint p1,v1,f1;
 int co = 0;
 int mode = 2;
@@ -23,7 +22,7 @@ int hud_ox = 0;
 float jump_velocity = 0;
 bool is_jumping = false;
 int time_spent_jumping = 0;
-
+bool is_flipped = false;
 class Player{
 	public:
 	float angle,ratio;
@@ -249,6 +248,7 @@ class Level{
 	Player *p;
 	float random_angle;
 	float map[MAPSIZE][MAPSIZE];
+	float jump_startx, jump_startz;
 	public:
 	bool has_started;
 	bool is_transitioning;
@@ -343,9 +343,8 @@ Level::Level(string &l)
 	randomFace->Load("../models/monkey.obj","../models/");	
 	g_rotation = 0;
 	p = new Player;
-	p->angle=0;
+	p->angle=PI/2;
 	p->x = 0; p->y = 1; p->z = 0; p->points =0;
-	roty=54;
 	p->lx = 1; p->ly = 0; p->lz = 0;
 	random_angle = 0;
 	
@@ -354,20 +353,14 @@ Level::Level(string &l)
 bool Level::doesCollide()
 {
 	float del = BLOCKSIZE/2;
-	float x = p->x+p->lx - del;
-	float z = p->z+p->lz - del;
-	int i1 = floor(x/BLOCKSIZE) + MAPSIZE/2 +1;
+	float x = p->x;
+	float z = p->z;
+	int i1 = floor(x/BLOCKSIZE) + MAPSIZE/2;
 	int j1 = floor(z/BLOCKSIZE) + MAPSIZE/2;
-	x += 2*del;
-	z += 2*del;
-	int i2 = floor(x/BLOCKSIZE) + MAPSIZE/2;
-	int j2 = floor(z/BLOCKSIZE) + MAPSIZE/2;
-	if(i1<=MAPSIZE && j1<=MAPSIZE && map[i1][j1]==0
-		&& i1<=MAPSIZE && j2<=MAPSIZE && map[i1][j2]==0
-		&& i2<=MAPSIZE && j1<=MAPSIZE && map[i2][j1]==0
-		&& i2<=MAPSIZE && j2<=MAPSIZE && map[i2][j2]==0
-		&& i1>=0 && i2>=0 && j1>=0 && j2>=0)
+	if((i1<=MAPSIZE && j1<=MAPSIZE && i1>=0 && j1>=0) && ((map[i1][j1]==0)||(is_jumping && (p->y-1 > ((is_flipped)?-map[i1][j1]*3:map[i1][j1]*3)))))
+	{
 		return false; //does not collide
+	}
 	else
 		return true; //does collide
 }
@@ -398,10 +391,18 @@ void Level::drawTerrain()
 		glColor3f(1,1,1);
 		for(int j=-MAPSIZE/2; j<MAPSIZE/2;j+=1)
 		{
-			high=map[i+MAPSIZE/2][j+MAPSIZE/2]*3;
-			if(map[i+MAPSIZE/2][j+MAPSIZE/2]==0)glBindTexture(GL_TEXTURE_2D,tex_grass);
-			else glBindTexture(GL_TEXTURE_2D,tex_wall);
-			
+			if(is_flipped)
+			{
+				high=map[i+MAPSIZE/2][MAPSIZE-1-j-MAPSIZE/2]*3;
+				if(map[i+MAPSIZE/2][MAPSIZE-1-j-MAPSIZE/2]==0)glBindTexture(GL_TEXTURE_2D,tex_grass);
+				else glBindTexture(GL_TEXTURE_2D,tex_wall);
+			}
+			else
+			{
+				high=map[i+MAPSIZE/2][j+MAPSIZE/2]*3;
+				if(map[i+MAPSIZE/2][j+MAPSIZE/2]==0)glBindTexture(GL_TEXTURE_2D,tex_grass);
+				else glBindTexture(GL_TEXTURE_2D,tex_wall);
+			}
 			glBegin(GL_QUADS);
 				glNormal3f(0,-1,0);
 				glTexCoord2f(0,0);glVertex3f(i , high, j + block);
@@ -418,11 +419,11 @@ void Level::drawTerrain()
 				glTexCoord2f(1,1);glVertex3f(i, 0, j + block);
 			glEnd();
 			glBegin(GL_QUADS);
-					glNormal3f(1,0,0);
-					glTexCoord2f(1,0);glVertex3f(i, high, j + block);
-					glTexCoord2f(0,0);glVertex3f(i, high, j);
-					glTexCoord2f(0,1);glVertex3f(i, 0, j);
-					glTexCoord2f(1,1);glVertex3f(i, 0, j + block);
+				glNormal3f(1,0,0);
+				glTexCoord2f(1,0);glVertex3f(i, high, j + block);
+				glTexCoord2f(0,0);glVertex3f(i, high, j);
+				glTexCoord2f(0,1);glVertex3f(i, 0, j);
+				glTexCoord2f(1,1);glVertex3f(i, 0, j + block);
 			glEnd();
 			glBegin(GL_QUADS);
 				glNormal3f(0,0,1);
@@ -440,9 +441,6 @@ void Level::drawTerrain()
 			glEnd();
 		}
 		glDisable(GL_TEXTURE_2D);
-	//inv->Load("../rooms/Level_1_test.obj","../rooms/");
-	//inv->Load("../rooms/texture/texture.obj", "../rooms/texture/");
-	//inv->Load("../rooms/SnowTerrain/SnowTerrain.obj", "../rooms/SnowTerrain/");
 	}
 }
 void Level::drawTransition()
@@ -515,7 +513,6 @@ void Level::nextLevel()
 	g_rotation = 0;
 	p->angle=0;
 	p->x = 0; p->y = 1; p->z = 0; p->points =0;
-	roty=54;
 }
 void Level::display()
 {
@@ -626,16 +623,16 @@ void Level::display()
 		if(is_jumping)
 		{
 			p->y += jump_velocity;
-			float dist = 20.0/JUMP_TIME;
-			p->x = p->x + dist*(p->lx)*0.1;
-	  		p->z = p->z + dist*(p->lz)*0.1;
+			float dist = 3.0/JUMP_TIME;
+			p->x = p->x + dist*(p->lx);
+	  		p->z = p->z + dist*(p->lz);
 			time_spent_jumping ++;
 			jump_velocity += GRAVITY;
 			if(doesCollide())
 			{
 				time_spent_jumping = JUMP_TIME;
-				p->x = p->x - dist*(p->lx)*0.1;
-	  			p->z = p->z - dist*(p->lz)*0.1;
+				p->x = jump_startx;
+	  			p->z = jump_startz;
 	  			p->y = 1;
 			}
 		}
@@ -643,7 +640,6 @@ void Level::display()
 			glTranslatef(p->x,p->y+-1,p->z);
 			//glTranslatef(p->lx,p->ly,p->lz);
 			glRotatef(-(p->angle*180/3.14),0,1,0);
-			glTranslatef(0,0,-0.5);
 			glRotatef(180,0,1,0);
 			//glScalef(0.5,0.5,0.5);
 			player->DrawColor();
@@ -781,7 +777,7 @@ void Level::display()
 		glEnable (GL_BLEND);
 		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		double radius = 115;   
-		glColor4f(1, 1, 1, 0.6);
+		glColor4f(1, 1, 1, 0.2);
 		double twicePi = 2.0 * 3.142;
 		glBegin(GL_TRIANGLE_FAN); //BEGIN CIRCLE
 		glVertex2f(map_ox, map_oy); // center of circle
@@ -793,7 +789,7 @@ void Level::display()
 		radius = 110;   
 		
 		glBegin(GL_TRIANGLE_FAN); //BEGIN CIRCLE
-		glColor4f(0.85, 1, 0, 0.5);
+		glColor4f(0.85, 1, 0, 0.1);
 		glVertex2f(map_ox, map_oy); // center of circle
 		for (int i = 0; i <= 40; i++)   {
 			glColor4f(0.28, 1, 0, 0.7);
@@ -827,16 +823,16 @@ void Level::display()
 					else
 						glColor4f(0,0.8,0,0);
 					glVertex2f(le, bo);
-					glVertex2f(le, bo - unit);
-					glVertex2f(le - unit, bo - unit);
-					glVertex2f(le - unit, bo);
+					glVertex2f(le+unit, bo);
+					glVertex2f(le+unit, bo -unit);
+					glVertex2f(le, bo-unit);
 				glEnd();
 			}
 		}
 		glColor3f(0,0,0);
 		glPointSize(1);
 		glBegin(GL_LINES);
-		    glVertex3f(map_ox - p->z*unit -p->lz*unit, map_oy + p->x*unit + p->lx*unit,0);
+		    glVertex3f(map_ox - p->z*unit, map_oy + p->x*unit ,0);
 		    glVertex3f(map_ox - p->z*unit -p->lz*4*unit, map_oy + p->x*unit + p->lx*4*unit,0);
 		glEnd();
 		int point_size = unit + abs(6 * sin(random_angle*PI/180));
@@ -845,7 +841,7 @@ void Level::display()
 		glBegin(GL_POINTS);
 			//tux
 			glColor3f(1.0f, 0.0f, 0.0f);
-			glVertex3f(map_ox - p->z*unit - p->lz*unit , map_oy + p->x*unit + p->lx*unit ,0);
+			glVertex3f(map_ox - p->z*unit , map_oy + p->x*unit ,0);
 			glColor3f(0,0.5,1);
 			//targets
 			for(int i=0;i<targets.size();i++)
@@ -863,10 +859,8 @@ void Level::display()
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
-	glutSwapBuffers();	
-	//glFlush(); 
+	glutSwapBuffers();
 	alListener3f(AL_POSITION,p->x,p->y,p->z);
-	//cout<<rotx<<" "<<roty<<" "<<rotz<<" "<<p->x<<" "<<p->y<<" "<<p->z<<endl; 
 	
 	
 	if(co == 3)
@@ -936,10 +930,17 @@ void Level::keyPress(unsigned char key, int x, int y)
 			is_jumping = true;
 			time_spent_jumping = 0;
 			jump_velocity = JUMP_VERT_VELOCITY;
+			jump_startx = p->x;
+			jump_startz = p->z;
 		}
 		}
 		if(key == 'q' || key == 'Q')
 		{
+			//p->z *= -1;
+			
+			//p->angle = 3*PI-p->angle;
+			//p->orient(p->angle);
+			is_flipped = 1 - is_flipped;
 			glutTimerFunc(100, rotate , 1 );
 		}
 		else if(key == 'o')
@@ -970,6 +971,10 @@ void Level::keyPress(unsigned char key, int x, int y)
 		else if(key== 'b' )
 		{	
 			show_sidehud = 1 - show_sidehud;
+		}
+		else if(key== 'n' )
+		{	
+			p->x=p->z=0;p->y=1;
 		}
 	}
 	if(key == 'y')
