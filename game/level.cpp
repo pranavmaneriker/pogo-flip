@@ -44,8 +44,8 @@ class Player{
 	  glLoadIdentity();
 	  if(mode == MODE_FIRST_PERSON)gluLookAt(x, y, z, x + lx,1 + ly,z + lz, 0.0f,1.0f,0.0f);
 	}
-
-	int points;
+	int total_points; 
+	int points, bonus;
 };
 
 class Target{
@@ -267,6 +267,7 @@ class Level{
 	int tex_wall;
 	int splash_1;
 	int new0, new1, settings0, settings1, hall0, hall1, quit0, quit1, help0, help1, hud;
+	clock_t init;
 };
 //If objects with textures need loading
 void
@@ -357,10 +358,11 @@ Level::Level(string &l)
 	g_rotation = 0;
 	p = new Player;
 	p->angle=PI/2;
+	p->total_points=0;
 	p->x = 0; p->y = 1; p->z = 0; p->points =0;
 	p->lx = 1; p->ly = 0; p->lz = 0;
 	random_angle = 0;
-	
+	init= clock();
 }
 
 bool Level::doesCollide()
@@ -479,6 +481,16 @@ void Level::drawTransition()
 		    glTexCoord2f(0,0);glVertex2f(0.0, win.height);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
+		
+		char buffer [5000];
+		
+		sprintf (buffer, "Level %d Completed!!\n\nBonus points :\t%d\nTotal Points :\t%d" , current_level - 1,p->bonus,  p->total_points);
+		unsigned char* y;
+		y = (unsigned char*) buffer;//strcat(x,rem);
+		glColor3f(0,0,0);
+		glRasterPos2i(100, 100);
+		glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
+		
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
@@ -495,6 +507,9 @@ void Level::drawTransition()
 		glRotatef(random_angle, 0, 1, 0);
 		randomFace->DrawColor();
 		
+		
+		
+		
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
@@ -502,6 +517,11 @@ void Level::drawTransition()
 void Level::nextLevel()
 {
 	co = 0;
+	clock_t final = clock()-init;
+	p-> bonus = floor(400 - 10*((double)final /((double)CLOCKS_PER_SEC)));
+	p->total_points += p->points + ((p->bonus>0)?p->bonus:0);
+	p->points = 0;
+	init = clock();
 	targets.clear();
 	is_transitioning = true;
 	current_level++;
@@ -769,7 +789,7 @@ void Level::display()
 		glEnd();
 		glBegin(GL_QUADS);
 		    glColor3f(0,0,0.6);
-		    glVertex2f(win.width-hud_pad-bar_width, hud_pad);
+		    glVertex2f(win.width-hud_pad-bar_width-25, hud_pad);
 		    glVertex2f(win.width-hud_pad, hud_pad);
 		    glVertex2f(win.width-hud_pad, hud_pad+bar_height);
 		    glVertex2f(win.width-hud_pad-bar_width, hud_pad+bar_height);
@@ -793,6 +813,47 @@ void Level::display()
 		    glVertex2f(win.width-hud_pad+bar_pad+bar_length-bar_width, hud_pad+bar_height-bar_pad);
 		    glColor3f(1,0.4,0);
 		    glVertex2f(win.width-hud_pad-bar_width+bar_pad, hud_pad+bar_height-bar_pad);
+		glEnd();
+		
+		//bonus bar
+		hud_pad = bar_height+sh;
+		bar_width = 400;
+		bar_height = 40;
+		bar_pad = 8;
+		sh=3;
+		glBegin(GL_QUADS);
+		    glColor3f(0,0,0);
+		    glVertex2f(win.width-bar_width+sh , hud_pad+sh);
+		    glVertex2f(win.width+sh, hud_pad+sh);
+		    glVertex2f(win.width+sh, hud_pad+bar_height+sh);
+		    glVertex2f(win.width-bar_width+sh, hud_pad+bar_height+sh);
+		glEnd();
+		glBegin(GL_QUADS);
+		    glColor3f(0.4, 0.4, 0.4);
+		    glVertex2f(win.width-bar_width-20, hud_pad);
+		    glVertex2f(win.width, hud_pad);
+		    glVertex2f(win.width, hud_pad+bar_height);
+		    glVertex2f(win.width-bar_width, hud_pad+bar_height);
+		glEnd();
+		glBegin(GL_QUADS);
+		    glColor3f(0.6,0.6, 0.6);
+		    glVertex2f(win.width-bar_width+bar_pad, hud_pad+bar_pad);
+		    glVertex2f(win.width-bar_pad, hud_pad+bar_pad);
+		    glVertex2f(win.width-bar_pad, hud_pad+bar_height-bar_pad);
+		    glVertex2f(win.width-bar_width+bar_pad, hud_pad+bar_height-bar_pad);
+		glEnd();
+		clock_t final = clock()-init;
+		bar_length = bar_width - 10*((double)final /((double)CLOCKS_PER_SEC));
+		if(bar_length<0)bar_length=0;
+		glBegin(GL_QUADS);
+		    glColor3f(1,1,1);
+		    glVertex2f(win.width-bar_width+bar_pad, hud_pad+bar_pad);
+		    glColor3f(1,1,1);
+		    glVertex2f(win.width+bar_pad+bar_length-bar_width, hud_pad+bar_pad);
+		    glColor3f(0.5,0.5,1);
+		    glVertex2f(win.width+bar_pad+bar_length-bar_width, hud_pad+bar_height-bar_pad);
+		    glColor3f(0.5,0.5,1);
+		    glVertex2f(win.width-bar_width+bar_pad, hud_pad+bar_height-bar_pad);
 		glEnd();
 		/*
 		glBegin(GL_QUADS);
@@ -1017,6 +1078,7 @@ void Level::keyPress(unsigned char key, int x, int y)
 	if(key == 'y')
 	{
 		has_started = true;
+		init = clock();
 		is_transitioning = false;
 	}
 	else if(key == 'r')
