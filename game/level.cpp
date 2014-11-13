@@ -46,6 +46,7 @@ class Player{
 	}
 	int total_points; 
 	int points, bonus;
+	float velocity, acc, friction;
 };
 
 class Target{
@@ -359,6 +360,9 @@ Level::Level(string &l)
 	p = new Player;
 	p->angle=PI/2;
 	p->total_points=0;
+	p->velocity = 0;
+	p->acc = 0.05;
+	p->friction = -0.1;
 	p->x = 0; p->y = 1; p->z = 0; p->points =0;
 	p->lx = 1; p->ly = 0; p->lz = 0;
 	random_angle = 0;
@@ -487,14 +491,20 @@ void Level::drawTransition()
 		sprintf (buffer, "Level %d Completed!!\n\nBonus points :\t%d\nTotal Points :\t%d" , current_level - 1,p->bonus,  p->total_points);
 		unsigned char* y;
 		y = (unsigned char*) buffer;//strcat(x,rem);
+		glColor3f(0,0.5,1);
+		glRasterPos2i(1001, 351);
+		glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, y);
+		
+		glMatrixMode(GL_PROJECTION);
+		
+		y = (unsigned char*) buffer;//strcat(x,rem);
 		glColor3f(0,0,0);
-		glRasterPos2i(100, 100);
-		glutBitmapString(GLUT_BITMAP_HELVETICA_18, y);
+		glRasterPos2i(1000, 350);
+		glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, y);
 		
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
-		
 		
 		
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -517,6 +527,8 @@ void Level::drawTransition()
 void Level::nextLevel()
 {
 	co = 0;
+	p->velocity = 0;
+	
 	clock_t final = clock()-init;
 	p-> bonus = floor(400 - 10*((double)final /((double)CLOCKS_PER_SEC))) ;
 	if (p->bonus < 0) p->bonus =0;
@@ -654,7 +666,16 @@ void Level::display()
 	}
 	else
 	{
-		//p->move(0.5);if(doesCollide())p->move(-0.5);
+		if(p->velocity >= -p->friction)
+			p->velocity += p->friction;
+		else if(p->velocity <= p->friction)
+			p->velocity -= p->friction;
+		p->move(p->velocity);
+		if(doesCollide())
+		{
+			p->move(-p->velocity);
+			p->velocity = 0;	
+		}
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
@@ -994,19 +1015,23 @@ void Level::keyPress(unsigned char key, int x, int y)
 		{
 			if( key == 'w' || key == 'W')
 			{
-				p->move(1);
-				if(doesCollide())
-				{
-					p->move(-1);
-				}
+				p->acc = 0.5/(abs(p->velocity)+1);
+				p->velocity += p->acc;
+				// p->move(1);
+				// if(doesCollide())
+				// {
+				// 	p->move(-1);
+				// }
 			}
 			else if( key == 's' || key == 'S')
 			{
-				p->move(-1);
-				if(doesCollide())
-				{
-					p->move(1);
-				}
+				p->acc = 0.5/(abs(p->velocity)+1);
+				p->velocity -= p->acc;
+				// p->move(-1);
+				// if(doesCollide())
+				// {
+				// 	p->move(1);
+				// }
 			}
 			else if(key == 'a' || key == 'A')
 			{
