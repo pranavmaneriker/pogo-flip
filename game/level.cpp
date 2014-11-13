@@ -528,7 +528,7 @@ void Level::nextLevel()
 {
 	co = 0;
 	p->velocity = 0;
-	
+
 	clock_t final = clock()-init;
 	p-> bonus = floor(400 - 10*((double)final /((double)CLOCKS_PER_SEC))) ;
 	if (p->bonus < 0) p->bonus =0;
@@ -586,7 +586,6 @@ void Level::nextLevel()
 }
 void Level::display()
 {
-	glUseProgram(p1);	//blinn-phong shading
 	if(is_transitioning)
 	{
 		drawTransition();
@@ -658,7 +657,10 @@ void Level::display()
 		glLoadIdentity();
 		glTranslatef(1.75, -1, -5);
 		glRotatef(random_angle, 0, 1, 0);
+
+		glUseProgram(p1);	//blinn-phong shading
 		player->DrawColor();
+		glUseProgram(0);
 		
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
@@ -674,7 +676,8 @@ void Level::display()
 		if(doesCollide())
 		{
 			p->move(-p->velocity);
-			p->velocity = 0;	
+			p->velocity = 0;
+			p->acc = 0.5;	
 		}
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -721,7 +724,9 @@ void Level::display()
 			glRotatef(-(p->angle*180/3.14),0,1,0);
 			glRotatef(180,0,1,0);
 			//glScalef(0.5,0.5,0.5);
+			glUseProgram(p1);	//blinn-phong shading
 			player->DrawColor();
+			glUseProgram(0);
 		glPopMatrix();
 		if(time_spent_jumping >= JUMP_TIME)
 		{

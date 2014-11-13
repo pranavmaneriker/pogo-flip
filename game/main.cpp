@@ -89,8 +89,8 @@ void setShaders()
 	v1 = glCreateShader(GL_VERTEX_SHADER);
 	f1 = glCreateShader(GL_FRAGMENT_SHADER);
 
-	vs = textFileRead((char*)"../libs/pixel.vert");
-	fs = textFileRead((char*)"../libs/pixel.frag");
+	vs = textFileRead((char*)"../libs/pixel2.vert");
+	fs = textFileRead((char*)"../libs/pixel2.frag");
 
 	const char * vv = vs;
 	const char * ff = fs;
