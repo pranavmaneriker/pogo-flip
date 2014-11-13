@@ -518,7 +518,8 @@ void Level::nextLevel()
 {
 	co = 0;
 	clock_t final = clock()-init;
-	p-> bonus = floor(400 - 10*((double)final /((double)CLOCKS_PER_SEC)));
+	p-> bonus = floor(400 - 10*((double)final /((double)CLOCKS_PER_SEC))) ;
+	if (p->bonus < 0) p->bonus =0;
 	p->total_points += p->points + ((p->bonus>0)?p->bonus:0);
 	p->points = 0;
 	init = clock();
@@ -573,7 +574,6 @@ void Level::nextLevel()
 }
 void Level::display()
 {
-
 	glUseProgram(p1);	//blinn-phong shading
 	if(is_transitioning)
 	{
@@ -654,19 +654,20 @@ void Level::display()
 	}
 	else
 	{
+		//p->move(0.5);if(doesCollide())p->move(-0.5);
 		glClearColor(0.7215,0.8627,0.9490,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LIGHTING);
-			glLoadIdentity();
-			float pos[]={0,1,1};
-			glLightfv(GL_LIGHT0,GL_POSITION,pos);
-			glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 100.0);
-			glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0);
-			//float dir[]={p->lx,p->ly,p->lz};
-			float dir[]={0,0,-1};
-			glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,dir);
-			glEnable(GL_LIGHT0);
+		glLoadIdentity();
+		float pos[]={0,1,1};
+		glLightfv(GL_LIGHT0,GL_POSITION,pos);
+		glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 100.0);
+		glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0);
+		//float dir[]={p->lx,p->ly,p->lz};
+		float dir[]={0,0,-1};
+		glLightfv(GL_LIGHT0,GL_SPOT_DIRECTION,dir);
+		glEnable(GL_LIGHT0);
 		
 		if(mode == MODE_FIRST_PERSON)
 		{
@@ -1024,13 +1025,13 @@ void Level::keyPress(unsigned char key, int x, int y)
 				}
 			}
 			else if(key== 'e' || key=='E')
-		{	
-			is_jumping = true;
-			time_spent_jumping = 0;
-			jump_velocity = JUMP_VERT_VELOCITY;
-			jump_startx = p->x;
-			jump_startz = p->z;
-		}
+			{	
+				is_jumping = true;
+				time_spent_jumping = 0;
+				jump_velocity = JUMP_VERT_VELOCITY;
+				jump_startx = p->x;
+				jump_startz = p->z;
+			}
 		}
 		if(key == 'q' || key == 'Q')
 		{
