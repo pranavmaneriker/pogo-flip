@@ -147,6 +147,10 @@ void Game::keyPress(unsigned char key, int x, int y)
 {
 	if(key == KEY_ESCAPE)
 	{
+		string map_path = "../hall/high";
+		ofstream scores (map_path.c_str(),ios::out | ios::app );
+		scores<<endl<<level->p->points;
+		scores.close();
 		exit(0);	//add more graceful exit
 	}
 

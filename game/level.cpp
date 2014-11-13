@@ -4,7 +4,7 @@
 
 #define MODE_FIRST_PERSON 1
 #define MODE_THIRD_PERSON 2
-#define NUM_MENU_ITEMS 5
+#define NUM_MENU_ITEMS 3
 
 #define JUMP_VERT_VELOCITY 0.5
 #define JUMP_TIME 20
@@ -23,6 +23,7 @@ float jump_velocity = 0;
 bool is_jumping = false;
 int time_spent_jumping = 0;
 bool is_flipped = false;
+bool show_hall = false;
 class Player{
 	public:
 	float angle,ratio;
@@ -238,37 +239,37 @@ class Model_OBJ{
 
 class Level{
 	private:
-	string cur_level_path;
-	string cur_level;
-	int current_level;
-	Model_OBJ *room;
-	Model_OBJ *inv;
-	Model_OBJ *player;
-	Model_OBJ *randomFace;
-	int g_rotation;
-	Player *p;
-	float random_angle;
-	float map[MAPSIZE][MAPSIZE];
-	float jump_startx, jump_startz;
+		string cur_level_path;
+		string cur_level;
+		int current_level;
+		Model_OBJ *room;
+		Model_OBJ *inv;
+		Model_OBJ *player;
+		Model_OBJ *randomFace;
+		int g_rotation;
+		float random_angle;
+		float map[MAPSIZE][MAPSIZE];
+		float jump_startx, jump_startz;
 	public:
-	bool has_started;
-	bool is_transitioning;
-	vector<Target> targets;
-	Level(string &l);
-	void display();
-	void keyPress(unsigned char ch, int x, int y);
-	void specialKeyPress(int key, int x, int y);
-	void rotateFace();
-	void nextLevel();
-	void initImageTextures();
-	void drawTransition();
-	void drawTerrain();
-	bool doesCollide();
-	int tex_grass;
-	int tex_wall;
-	int splash_1;
-	int new0, new1, settings0, settings1, hall0, hall1, quit0, quit1, help0, help1, hud;
-	clock_t init;
+		Player *p;
+		bool has_started;
+		bool is_transitioning;
+		vector<Target> targets;
+		Level(string &l);
+		void display();
+		void keyPress(unsigned char ch, int x, int y);
+		void specialKeyPress(int key, int x, int y);
+		void rotateFace();
+		void nextLevel();
+		void initImageTextures();
+		void drawTransition();
+		void drawTerrain();
+		bool doesCollide();
+		int tex_grass;
+		int tex_wall;
+		int splash_1;
+		int new0, new1, settings0, settings1, hall0, hall1, quit0, quit1, help0, help1, hud, frame;
+		clock_t init;
 };
 //If objects with textures need loading
 void
@@ -302,6 +303,8 @@ Level::initImageTextures()
 	quit1 = initImage(path);
 	path = "../textures/hud.png";
 	hud = initImage(path);
+	path = "../textures/frame.png";
+	frame = initImage(path);
 }
 
 //Loading level 
@@ -590,6 +593,81 @@ void Level::display()
 	{
 		drawTransition();
 	}
+	else if(show_hall)
+	{
+				glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glOrtho(0.0, win.width, win.height, 0.0, -1.0, 10.0);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_LIGHT0);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		
+		glEnable(GL_TEXTURE_2D);
+		glColor3f(1,1,1);
+		glBindTexture(GL_TEXTURE_2D,splash_1);
+		glBegin(GL_QUADS);
+		    glTexCoord2f(0,1);glVertex2f(0.0, 0.0);
+		    glTexCoord2f(1,1);glVertex2f(win.width, 0.0);
+		    glTexCoord2f(1,0);glVertex2f(win.width, win.height);
+		    glTexCoord2f(0,0);glVertex2f(0.0, win.height);
+		glEnd();
+		glBindTexture(GL_TEXTURE_2D,frame);
+		glBegin(GL_QUADS);
+			//glColor3f(0.7,0.9,0.4);
+		    glTexCoord2f(0,1);glVertex2f(300, 300);
+		    glTexCoord2f(1,1);glVertex2f(600, 300);
+		    glTexCoord2f(1,0);glVertex2f(600, 600);
+		    glTexCoord2f(0,0);glVertex2f(300, 600);
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
+		vector<int> highScores;
+		int temp;
+		highScores.resize(0);
+		string map_path = "../hall/high";
+		ifstream scores (map_path.c_str());
+		while(scores>>temp)
+		{
+			highScores.push_back(-temp);
+		}
+		sort(highScores.begin(), highScores.end());
+		scores.close();
+		char buffer [5000];
+		
+		sprintf (buffer, "Top 5 Scores :\n%d\n%d\n%d\n%d\n%d", -highScores[0], -highScores[1], -highScores[2], -highScores[3], -highScores[4]);
+		unsigned char* y;
+		y = (unsigned char*) buffer;//strcat(x,rem);
+		glColor3f(0,0,0);
+		glRasterPos2i(400, 400);
+		glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, y);
+		
+
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		
+		
+		
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glLoadIdentity();
+		glTranslatef(1.75, -1, -5);
+		glRotatef(random_angle, 0, 1, 0);
+
+		glUseProgram(p1);	//blinn-phong shading
+		player->DrawColor();
+		glUseProgram(0);
+		
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+	}
 	else if(!has_started)
 	{
 		glMatrixMode(GL_PROJECTION);
@@ -622,19 +700,15 @@ void Level::display()
 		for(int i=0;i<NUM_MENU_ITEMS;i++)
 		{
 			int temp, temp_x;
-			if(menu_index==i){temp=i+5;temp_x = menu_x + 20;}
+			if(menu_index==i){temp=i+NUM_MENU_ITEMS;temp_x = menu_x + 20;}
 			else{temp_x = menu_x; temp = i;}
 			glColor3f(1,1,1);
 			if(temp==0) glBindTexture(GL_TEXTURE_2D,new0);
 			else if(temp==1) glBindTexture(GL_TEXTURE_2D,hall0);
-			else if(temp==2) glBindTexture(GL_TEXTURE_2D,help0);
-			else if(temp==3) glBindTexture(GL_TEXTURE_2D,settings0);
-			else if(temp==4) glBindTexture(GL_TEXTURE_2D,quit0);
-			else if(temp==5) glBindTexture(GL_TEXTURE_2D,new1);
-			else if(temp==6) glBindTexture(GL_TEXTURE_2D,hall1);
-			else if(temp==7) glBindTexture(GL_TEXTURE_2D,help1);
-			else if(temp==8) glBindTexture(GL_TEXTURE_2D,settings1);
-			else if(temp==9) glBindTexture(GL_TEXTURE_2D,quit1);
+			else if(temp==2) glBindTexture(GL_TEXTURE_2D,quit0);
+			else if(temp==3) glBindTexture(GL_TEXTURE_2D,new1);
+			else if(temp==4) glBindTexture(GL_TEXTURE_2D,hall1);
+			else if(temp==5) glBindTexture(GL_TEXTURE_2D,quit1);
 
 			glBegin(GL_QUADS);
 				glTexCoord2f(0,0);glVertex2f(temp_x, menu_y + i*(menu_gap+menu_h) + menu_h);
@@ -1120,6 +1194,22 @@ void Level::keyPress(unsigned char key, int x, int y)
 	{
 		if(menu_index == 0)
 			has_started = true;
+		if(menu_index == 1)
+			show_hall = true;
+		if(menu_index == 2)
+		{
+			//write score to a file
+			string map_path = "../hall/high";
+			ofstream scores (map_path.c_str(),ios::out | ios::app );
+			scores<<endl<<p->points;
+			scores.close();
+			exit(0);
+		}
+	}
+	else if(key=='p')
+	{
+		has_started = false;
+		show_hall = false;
 	}
 	for(int i=0; i<targets.size(); i++)
 	{
