@@ -92,8 +92,8 @@ void setShaders()
 	v1 = glCreateShader(GL_VERTEX_SHADER);
 	f1 = glCreateShader(GL_FRAGMENT_SHADER);
 
-	vs = textFileRead((char*)"../libs/pixel.vert");
-	fs = textFileRead((char*)"../libs/pixel.frag");
+	vs = textFileRead((char*)"../libs/pixel2.vert");
+	fs = textFileRead((char*)"../libs/pixel2.frag");
 
 	const char * vv = vs;
 	const char * ff = fs;
@@ -150,6 +150,10 @@ void Game::keyPress(unsigned char key, int x, int y)
 {
 	if(key == KEY_ESCAPE)
 	{
+		string map_path = "../hall/high";
+		ofstream scores (map_path.c_str(),ios::out | ios::app );
+		scores<<endl<<level->p->points;
+		scores.close();
 		exit(0);	//add more graceful exit
 	}
 
@@ -220,7 +224,7 @@ void Game::initWindow(int *argc, char ** argv)
 	glutDisplayFunc(&display1);									// register Display Function
     	glutKeyboardFunc(&keyPress1);								// register Keyboard Handler
     	glutSpecialFunc(&specialKeyPress1);								// register Keyboard Handler
-	glutFullScreen();
+	//glutFullScreen();
 	glutIdleFunc(&rotate);
 	
 	initGL();
@@ -309,7 +313,6 @@ void Game::start(int *argc, char ** argv)
 int main(int argc, char **argv)
 {
 	g = new Game;
-	rotx = roty = rotz = 0;
 	g->start(&argc, argv);
 	return 0;
 }
