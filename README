@@ -1,3 +1,8 @@
+**Repository for project made in CS360 course
+
+**Pogo Flip
+
+
 Libraries:
 freeglut3-dev
 
@@ -11,9 +16,6 @@ Audio:
 libopenal-dev
 libal-dev
 libalut-dev
-
-
-
 
 Compilation:
 cd game
@@ -37,9 +39,6 @@ Code structre:
 
 README: refer this
 useful_links.txt : Various api documentation
-
-TODO: Add makefile
-    
 
 
 Obj file exporting from blender:
