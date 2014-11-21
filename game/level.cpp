@@ -625,6 +625,7 @@ void Level::display()
 		    glTexCoord2f(0,0);glVertex2f(300, 600);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
+		
 		vector<int> highScores;
 		int temp;
 		highScores.resize(0);
@@ -1208,7 +1209,7 @@ void Level::keyPress(unsigned char key, int x, int y)
 	}
 	else if(key=='p')
 	{
-		has_started = false;
+		has_started = 1-has_started;
 		show_hall = false;
 	}
 	for(int i=0; i<targets.size(); i++)
